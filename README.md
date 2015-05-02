@@ -6,13 +6,13 @@ Install Package:
 npm install --save jenkins-js-core
 ```
 
-# Exporting/Registering JS modules from a plugin
+# Exporting JavaScript modules
 
 We assume that the plugin bundle JavaScript is bundled using Browserify, and that bundle performs the registration
 of the module, allowing other plugin bundles to `require` that module.
 
 
-```
+```javascript
 exports.add = function(lhs, rhs {
     return lhs + hrs;
 }
@@ -23,12 +23,12 @@ var jenkinsCore = require('jenkins-js-core');
 jenkinsCore.registerModule('pluginA', 'mathUtils', exports);
 ```
 
-# Requiring/importing JS modules from a plugin
+# Requiring/importing JavaScript modules
 
-A module in one plugin ("pluginB") can `require` a module from another plugin ("pluginA" see above).
+A JavaScript module in one plugin ("pluginB") can `require` a module from another plugin ("pluginA" see above).
 
 
-```
+```javascript
 var jenkinsCore = require('jenkins-js-core');
 var mathUtil; // initialise once the module is loaded and registered 
 
