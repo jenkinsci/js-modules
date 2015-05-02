@@ -1,6 +1,6 @@
 {
     "name": "jenkins-js-core",
-    "version": "1.0.0-alpha-1",
+    "version": "1.0.0-alpha-2",
     "description": "Jenkins CI core JavaScript module",
     "main": "js/index.js",
     "scripts": {
