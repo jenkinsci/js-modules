@@ -14,7 +14,7 @@ var promise = require("./promise");
  *
  * @return A Promise, allowing async load of the module.
  */
-exports.require = function(pluginName, moduleName, onRegisterTimeout) {    
+exports.requireModule = function(pluginName, moduleName, onRegisterTimeout) {    
     var plugin = internal.getPlugin(pluginName);
     var module = plugin[moduleName];
     if (module) {
@@ -33,13 +33,13 @@ exports.require = function(pluginName, moduleName, onRegisterTimeout) {
 }
 
 /**
- * Register a module.
+ * Export a module.
  * 
  * @param pluginName The Jenkins plugin in which the module resides.
  * @param moduleName The name of the module. 
  * @param moduleExports The CommonJS style module exports.
  */
-exports.registerModule = function(pluginName, moduleName, moduleExports) {
+exports.exportModule = function(pluginName, moduleName, moduleExports) {
     var plugin = internal.getPlugin(pluginName);
     if (plugin[moduleName]) {
         throw "Jenkins plugin module '" + pluginName + ":" + moduleName + "' already registered.";
@@ -50,5 +50,5 @@ exports.registerModule = function(pluginName, moduleName, moduleExports) {
     plugin[moduleName] = module;
     
     // Notify all that the module has been registered. See internal.loadModule also.
-    internal.notifyModuleRegistered(pluginName, moduleName, moduleExports)
+    internal.notifyModuleExported(pluginName, moduleName, moduleExports)
 }

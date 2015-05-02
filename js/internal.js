@@ -88,7 +88,7 @@ exports.loadModule = function(pluginName, moduleName, onRegisterTimeout) {
     }
 }
 
-exports.notifyModuleRegistered = function(pluginName, moduleName, moduleExports) {
+exports.notifyModuleExported = function(pluginName, moduleName, moduleExports) {
     var plugin = exports.getPlugin(pluginName);
 
     var module = plugin[moduleName];

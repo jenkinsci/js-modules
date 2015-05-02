@@ -7,12 +7,12 @@ var testUtil = require("./test-util");
 
 describe("index.js", function () {
 
-    it("- test require and registerModule timeout", function (done) {
+    it("- test require and exportModule timeout", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
-            // should fail because a registerModule never happens
-            jenkins.require('pluginA', 'mathUtils', 100)
+            // should fail because a exportModule never happens
+            jenkins.requireModule('pluginA', 'mathUtils', 100)
                 .catch(function(error) {
                     expect(error.reason).toBe('timeout');
                     expect(error.detail).toBe("Please verify that the plugin 'pluginA' is installed, and that it registers a module named 'mathUtils'");
@@ -21,14 +21,14 @@ describe("index.js", function () {
         });
     });
 
-    it("- test require and registerModule async successful", function (done) {
+    it("- test require and exportModule async successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
             // Require before the module is registered.
             // The require should "trigger" the loading of the module from the plugin.
-            // Should pass because registerModule will happen before the timeout
-            jenkins.require('pluginA', 'mathUtils', 2000).then(function(module) {
+            // Should pass because exportModule will happen before the timeout
+            jenkins.requireModule('pluginA', 'mathUtils', 2000).then(function(module) {
                 expect(module.add(2,2)).toBe(4);
                 done();               
             }); // timeout before Jasmine does
@@ -43,9 +43,9 @@ describe("index.js", function () {
             // Now mimic registering of the plugin module. In real Jenkins land, this would happen
             // async. The call to "require" would trigger the plugin js to be loaded
             // via adding of a <script> element to the page DOM. That plugin module
-            // is then responsible for calling 'registerModule', which should trigger
+            // is then responsible for calling 'exportModule', which should trigger
             // the notify etc
-            jenkins.registerModule('pluginA', 'mathUtils', {
+            jenkins.exportModule('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -53,19 +53,19 @@ describe("index.js", function () {
         });
     });
 
-    it("- test require and registerModule sync successful", function (done) {
+    it("- test require and exportModule sync successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
 
             // Register the module before calling require. See above test too.
-            jenkins.registerModule('pluginA', 'mathUtils', {
+            jenkins.exportModule('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
             });
             
-            // Should pass immediately because registerModule has already happened.
-            jenkins.require('pluginA', 'mathUtils', 0).then(function(module) {
+            // Should pass immediately because exportModule has already happened.
+            jenkins.requireModule('pluginA', 'mathUtils', 0).then(function(module) {
                 expect(module.add(2,2)).toBe(4);
                 done();               
             }); // disable async load mode
