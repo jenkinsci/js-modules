@@ -1,4 +1,5 @@
 var internal = require("./internal");
+var promise = require("./promise");
 
 /**
  * Require a module.
@@ -9,31 +10,25 @@ var internal = require("./internal");
  *
  * @param pluginName The Jenkins plugin in which the module resides.
  * @param moduleName The name of the module.
- * @param onRegister The callback function to call when the module is registered. The module is passed (it's exports) as a parameter to the function. 
- * Called immediately if the module is already registered.
  * @param onRegisterTimeout Millisecond duration before onRegister times out. Defaults to 10000 (10s) if not specified.
  *
- * @return The module loaded object.
+ * @return A Promise, allowing async load of the module.
  */
-exports.require = function(pluginName, moduleName, onRegister, onRegisterTimeout) {
-    
-    // TODO: Look at replacing this ugly callback with a promise/future
-    
+exports.require = function(pluginName, moduleName, onRegisterTimeout) {    
     var plugin = internal.getPlugin(pluginName);
     var module = plugin[moduleName];
     if (module) {
         // module already loaded
-        onRegister({
-            loaded: true,
-            exports: module.exports
+        return promise.make(function (resolve) {
+            resolve(module.exports);
         });
     } else {
         if (onRegisterTimeout === 0) {
             throw 'Plugin module ' + pluginName + ':' + moduleName + ' require failure. Async load mode disabled.';
         }
         
-        // module not loaded. Load async and wait for it to be registered
-        internal.loadModule(pluginName, moduleName, onRegister, onRegisterTimeout);
+        // module not loaded. Load async, fulfilling promise once registered
+        return internal.loadModule(pluginName, moduleName, onRegisterTimeout);
     }
 }
 

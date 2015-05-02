@@ -1,3 +1,5 @@
+var promise = require("./promise");
+
 exports.getWindow = function() {
     return window;
 }
@@ -22,41 +24,46 @@ exports.getPlugin = function(pluginName) {
     return plugin;
 }
 
-exports.loadModule = function(pluginName, moduleName, onRegister, onRegisterTimeout) {
+exports.loadModule = function(pluginName, moduleName, onRegisterTimeout) {
     var plugin = exports.getPlugin(pluginName);
 
     var module = plugin[moduleName];
     if (module) {
         // Module already loaded. This prob shouldn't happen.
-        onRegister(module.exports);
         console.log("Unexpected call to 'loadModule' for a module (" + moduleName + ") that's already loaded.");
-        return;
+        return promise.make(function (resolve) {
+            resolve(module.exports);
+        });
     }
 
-    function waitForRegistration(loadingModule, onRegister, onRegisterTimeout) {
-        if (typeof onRegisterTimeout !== "number") {
-            onRegisterTimeout = 10000;
-        }
-        
-        var timeoutObj = setTimeout(function () {
-            // Timed out waiting on the module to load and register itself.
-            if (!loadingModule.loaded) {
-                // Call the on onRegister function and tell it we timed out
-                onRegister({
-                        loaded: false,
-                        reason: 'timeout',
-                        detail: "Please verify that the plugin '" + 
-                            loadingModule.pluginName + "' is installed, and that " +
-                            "it registers a module named '" + loadingModule.moduleName + "'"
-                    }
-                );
+    function waitForRegistration(loadingModule, onRegisterTimeout) {
+        return promise.make(function (resolve, reject) {
+            if (typeof onRegisterTimeout !== "number") {
+                onRegisterTimeout = 10000;
             }
-        }, onRegisterTimeout);
-        
-        loadingModule.waitList.push({
-            onRegister: onRegister,
-            timeoutObj: timeoutObj
-        });        
+            
+            var timeoutObj = setTimeout(function () {
+                // Timed out waiting on the module to load and register itself.
+                if (!loadingModule.loaded) {
+                    var errorDetail = "Please verify that the plugin '" +
+                        loadingModule.pluginName + "' is installed, and that " +
+                        "it registers a module named '" + loadingModule.moduleName + "'";
+                    
+                    console.error('Plugin module load failure: ' + errorDetail);
+
+                    // Call the reject function and tell it we timed out
+                    reject({
+                        reason: 'timeout',
+                        detail: errorDetail
+                    });
+                }
+            }, onRegisterTimeout);
+            
+            loadingModule.waitList.push({
+                resolve: resolve,
+                timeoutObj: timeoutObj
+            });                    
+        });
     }
     
     var loadingModule = getLoadingModule(plugin, moduleName);
@@ -64,19 +71,21 @@ exports.loadModule = function(pluginName, moduleName, onRegister, onRegisterTime
         loadingModule.waitList = [];
     }
     loadingModule.pluginName = pluginName; 
-    loadingModule.moduleName = moduleName; 
+    loadingModule.moduleName = moduleName;
     loadingModule.loaded = false;
-    
-    waitForRegistration(loadingModule, onRegister, onRegisterTimeout);
-    
-    // Add the <script> element to the <head>
-    var docHead = getHeadElement();
-    var script = createElement('script');
-    script.setAttribute('id', exports.toPluginModuleId(pluginName, moduleName));
-    script.setAttribute('type', 'text/javascript');
-    script.setAttribute('src', exports.toPluginModuleSrc(pluginName, moduleName));
-    script.setAttribute('async', 'true');
-    docHead.appendChild(script);
+
+    try {
+        return waitForRegistration(loadingModule, onRegisterTimeout);
+    } finally {
+        // Add the <script> element to the <head>
+        var docHead = getHeadElement();
+        var script = createElement('script');
+        script.setAttribute('id', exports.toPluginModuleId(pluginName, moduleName));
+        script.setAttribute('type', 'text/javascript');
+        script.setAttribute('src', exports.toPluginModuleSrc(pluginName, moduleName));
+        script.setAttribute('async', 'true');
+        docHead.appendChild(script);
+    }
 }
 
 exports.notifyModuleRegistered = function(pluginName, moduleName, moduleExports) {
@@ -90,10 +99,7 @@ exports.notifyModuleRegistered = function(pluginName, moduleName, moduleExports)
         for (var i = 0; i < loadingModule.waitList.length; i++) {
             var waiter = loadingModule.waitList[i];
             clearTimeout(waiter.timeoutObj);
-            waiter.onRegister({
-                loaded: true,
-                exports: moduleExports
-            });
+            waiter.resolve(moduleExports);
         }
     }    
 }

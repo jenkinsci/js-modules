@@ -12,12 +12,12 @@ describe("index.js", function () {
             var jenkins = require("../js/index");
             
             // should fail because a registerModule never happens
-            jenkins.require('pluginA', 'mathUtils', function(result) {
-                expect(result.loaded).toBe(false);
-                expect(result.reason).toBe('timeout');
-                expect(result.detail).toBe("Please verify that the plugin 'pluginA' is installed, and that it registers a module named 'mathUtils'");
-                done();               
-            }, 100);
+            jenkins.require('pluginA', 'mathUtils', 100)
+                .catch(function(error) {
+                    expect(error.reason).toBe('timeout');
+                    expect(error.detail).toBe("Please verify that the plugin 'pluginA' is installed, and that it registers a module named 'mathUtils'");
+                    done();               
+                });
         });
     });
 
@@ -28,11 +28,10 @@ describe("index.js", function () {
             // Require before the module is registered.
             // The require should "trigger" the loading of the module from the plugin.
             // Should pass because registerModule will happen before the timeout
-            jenkins.require('pluginA', 'mathUtils', function(result) {
-                expect(result.loaded).toBe(true);
-                expect(result.exports.add(2,2)).toBe(4);
+            jenkins.require('pluginA', 'mathUtils', 2000).then(function(module) {
+                expect(module.add(2,2)).toBe(4);
                 done();               
-            }, 2000); // timeout before Jasmine does
+            }); // timeout before Jasmine does
             
             // Check that the <script> element was added to the <head>
             var internal = require("../js/internal");
@@ -66,11 +65,10 @@ describe("index.js", function () {
             });
             
             // Should pass immediately because registerModule has already happened.
-            jenkins.require('pluginA', 'mathUtils', function(result) {
-                expect(result.loaded).toBe(true);
-                expect(result.exports.add(2,2)).toBe(4);
+            jenkins.require('pluginA', 'mathUtils', 0).then(function(module) {
+                expect(module.add(2,2)).toBe(4);
                 done();               
-            }, 0); // disable async load mode
+            }); // disable async load mode
             
         });
     });
