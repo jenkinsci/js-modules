@@ -117,7 +117,7 @@ exports.toPluginModuleId = function(pluginName, moduleName) {
 }
 
 exports.toPluginModuleSrc = function(pluginName, moduleName) {
-    return getResURL() + '/' + pluginName + '/jsmodules/' + moduleName + '.js';
+    return getResURL() + '/plugin/' + pluginName + '/jsmodules/' + moduleName + '.js';
 }
 
 function getResURL() {

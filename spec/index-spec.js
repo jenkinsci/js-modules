@@ -38,7 +38,7 @@ describe("index.js", function () {
             var document = internal.getWindow().document;
             var scriptEl = document.getElementById(internal.toPluginModuleId('pluginA', 'mathUtils'));            
             expect(scriptEl).toBeDefined();
-            expect(scriptEl.getAttribute('src')).toBe('/jenkins/pluginA/jsmodules/mathUtils.js');
+            expect(scriptEl.getAttribute('src')).toBe('/jenkins/plugin/pluginA/jsmodules/mathUtils.js');
                         
             // Now mimic registering of the plugin module. In real Jenkins land, this would happen
             // async. The call to "require" would trigger the plugin js to be loaded
