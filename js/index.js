@@ -60,11 +60,24 @@ exports.exportModule = function(pluginName, moduleName, moduleExports) {
  */
 exports.saveGlobal = function(name) {
     var theWindow = internal.getWindow();
-    var value = theWindow[name];
+    var value;
+    var memento;
     
-    var memento = {
-        restore: function() {
-            theWindow[name] = value;
+    if (theWindow.hasOwnProperty(name)) {
+        value = theWindow[name];
+    }
+
+    if (value) {
+        memento = {
+            restore: function() {
+                theWindow[name] = value;
+            }
+        }
+    } else {
+        memento = {
+            restore: function() {
+                // no-op
+            }
         }
     }
     

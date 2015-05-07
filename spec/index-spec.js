@@ -73,7 +73,7 @@ describe("index.js", function () {
         });
     });
 
-    it("- test saveGlobal", function () {
+    it("- test saveGlobal exists", function () {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             var theWindow = require("../js/internal").getWindow();
@@ -105,6 +105,23 @@ describe("index.js", function () {
             expect(theWindow.jenkinsG2).toBe("B");
             mementoG2.restore();
             expect(theWindow.jenkinsG2).toBe("2");
+        });
+    });
+
+    it("- test saveGlobal doesn't exist", function () {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var theWindow = require("../js/internal").getWindow();
+                        
+            // save a global that doesn't exist            
+            var mementoGX = jenkins.saveGlobal('jenkinsGX');
+            
+            // Now give it a value...
+            theWindow.jenkinsGX = "X";
+
+            // Now restore it ... should be a no-op i.e. the restore doesn't delete it
+            mementoGX.restore();
+            expect(theWindow.jenkinsGX).toBe("X");
         });
     });
 });
