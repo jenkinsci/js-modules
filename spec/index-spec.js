@@ -72,4 +72,39 @@ describe("index.js", function () {
             
         });
     });
+
+    it("- test saveGlobal", function () {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var theWindow = require("../js/internal").getWindow();
+                        
+            // save a few globals
+            
+            theWindow.jenkinsG1 = "1";        
+            var mementoG1 = jenkins.saveGlobal('jenkinsG1');
+            theWindow.jenkinsG1 = "A";
+
+            theWindow.jenkinsG2 = "2";        
+            var mementoG2 = jenkins.saveGlobal('jenkinsG2');
+            theWindow.jenkinsG2 = "B";
+
+            theWindow.jenkinsG3 = "3";        
+            var mementoG3 = jenkins.saveGlobal('jenkinsG3');
+            theWindow.jenkinsG3 = "C";
+            
+            // restore the globals, but in a different order ... make sure it doesn't matter
+
+            expect(theWindow.jenkinsG1).toBe("A");
+            mementoG1.restore();
+            expect(theWindow.jenkinsG1).toBe("1");
+            
+            expect(theWindow.jenkinsG3).toBe("C");
+            mementoG3.restore();
+            expect(theWindow.jenkinsG3).toBe("3");
+
+            expect(theWindow.jenkinsG2).toBe("B");
+            mementoG2.restore();
+            expect(theWindow.jenkinsG2).toBe("2");
+        });
+    });
 });
