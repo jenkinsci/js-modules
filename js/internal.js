@@ -1,11 +1,8 @@
 var promise = require("./promise");
-
-exports.getWindow = function() {
-    return window;
-}
+var windowHandle = require("window-handle");
 
 exports.getJenkins = function() {
-    var window = exports.getWindow();
+    var window = windowHandle.getWindow();
     if (!window.jenkinsCIGlobal) {
         window.jenkinsCIGlobal = {
             resURL: getResURL()
@@ -131,7 +128,7 @@ function getResURL() {
 }
 
 function getHeadElement() {
-    var window = exports.getWindow();
+    var window = windowHandle.getWindow();
     var docHead = window.document.getElementsByTagName("head");
     if (!docHead || docHead.length == 0) {
         throw 'No head element found in document.';
@@ -140,7 +137,7 @@ function getHeadElement() {
 }
 
 function createElement(name) {
-    var document = exports.getWindow().document;
+    var document = windowHandle.getWindow().document;
     return document.createElement(name);
 }
 

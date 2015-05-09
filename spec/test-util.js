@@ -9,15 +9,8 @@ var JENKINS_PAGE = '<html><head resURL="/jenkins"></head><body><div></div></body
 exports.onJenkinsPage = function(testFunc) {
     jsdom.env(JENKINS_PAGE, [],
         function (errors, window) {
-            exports.mockWindow(window);
+            require("window-handle").setWindow(window);
             testFunc();
         }
     );    
-}
-
-exports.mockWindow = function(window) {
-    var internal = require("../js/internal");
-    internal.getWindow = function() {
-        return window;
-    };    
 }

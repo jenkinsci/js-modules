@@ -35,7 +35,7 @@ describe("index.js", function () {
             
             // Check that the <script> element was added to the <head>
             var internal = require("../js/internal");
-            var document = internal.getWindow().document;
+            var document = require('window-handle').getWindow().document;
             var scriptEl = document.getElementById(internal.toPluginModuleId('pluginA', 'mathUtils'));            
             expect(scriptEl).toBeDefined();
             expect(scriptEl.getAttribute('src')).toBe('/jenkins/plugin/pluginA/jsmodules/mathUtils.js');
@@ -70,58 +70,6 @@ describe("index.js", function () {
                 done();               
             }); // disable async load mode
             
-        });
-    });
-
-    it("- test saveGlobal exists", function () {
-        testUtil.onJenkinsPage(function() {
-            var jenkins = require("../js/index");
-            var theWindow = require("../js/internal").getWindow();
-                        
-            // save a few globals
-            
-            theWindow.jenkinsG1 = "1";        
-            var mementoG1 = jenkins.saveGlobal('jenkinsG1');
-            theWindow.jenkinsG1 = "A";
-
-            theWindow.jenkinsG2 = "2";        
-            var mementoG2 = jenkins.saveGlobal('jenkinsG2');
-            theWindow.jenkinsG2 = "B";
-
-            theWindow.jenkinsG3 = "3";        
-            var mementoG3 = jenkins.saveGlobal('jenkinsG3');
-            theWindow.jenkinsG3 = "C";
-            
-            // restore the globals, but in a different order ... make sure it doesn't matter
-
-            expect(theWindow.jenkinsG1).toBe("A");
-            mementoG1.restore();
-            expect(theWindow.jenkinsG1).toBe("1");
-            
-            expect(theWindow.jenkinsG3).toBe("C");
-            mementoG3.restore();
-            expect(theWindow.jenkinsG3).toBe("3");
-
-            expect(theWindow.jenkinsG2).toBe("B");
-            mementoG2.restore();
-            expect(theWindow.jenkinsG2).toBe("2");
-        });
-    });
-
-    it("- test saveGlobal doesn't exist", function () {
-        testUtil.onJenkinsPage(function() {
-            var jenkins = require("../js/index");
-            var theWindow = require("../js/internal").getWindow();
-                        
-            // save a global that doesn't exist            
-            var mementoGX = jenkins.saveGlobal('jenkinsGX');
-            
-            // Now give it a value...
-            theWindow.jenkinsGX = "X";
-
-            // Now restore it ... should be a no-op i.e. the restore doesn't delete it
-            mementoGX.restore();
-            expect(theWindow.jenkinsGX).toBe("X");
         });
     });
 });

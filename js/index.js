@@ -52,34 +52,3 @@ exports.exportModule = function(pluginName, moduleName, moduleExports) {
     // Notify all that the module has been registered. See internal.loadModule also.
     internal.notifyModuleExported(pluginName, moduleName, moduleExports)
 }
-
-/**
- * Save a global variable.
- * @param name The name of the variable.
- * @returns A memento object with a "restore" function for restoring the global to its original state.
- */
-exports.saveGlobal = function(name) {
-    var theWindow = internal.getWindow();
-    var value;
-    var memento;
-    
-    if (theWindow.hasOwnProperty(name)) {
-        value = theWindow[name];
-    }
-
-    if (value) {
-        memento = {
-            restore: function() {
-                theWindow[name] = value;
-            }
-        }
-    } else {
-        memento = {
-            restore: function() {
-                // no-op
-            }
-        }
-    }
-    
-    return memento;
-}
