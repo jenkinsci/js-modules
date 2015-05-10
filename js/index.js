@@ -52,3 +52,17 @@ exports.exportModule = function(pluginName, moduleName, moduleExports) {
     // Notify all that the module has been registered. See internal.loadModule also.
     internal.notifyModuleExported(pluginName, moduleName, moduleExports)
 }
+
+/**
+ * Add a module's CSS to the browser page.
+ * 
+ * <p>
+ * The assumption is that the CSS can be accessed at
+ * {@code <resURL>/plugin/<pluginName>/jsmodules/<moduleName>/style.css}
+ * 
+ * @param pluginName The Jenkins plugin in which the module resides.
+ * @param moduleName The name of the module. 
+ */
+exports.addModuleCSSToPage = function(pluginName, moduleName) {
+    internal.addModuleCSSToPage(pluginName, moduleName)
+}

@@ -77,7 +77,7 @@ exports.loadModule = function(pluginName, moduleName, onRegisterTimeout) {
         // Add the <script> element to the <head>
         var docHead = getHeadElement();
         var script = createElement('script');
-        script.setAttribute('id', exports.toPluginModuleId(pluginName, moduleName));
+        script.setAttribute('id', exports.toPluginModuleId(pluginName, moduleName) + ':js');
         script.setAttribute('type', 'text/javascript');
         script.setAttribute('src', exports.toPluginModuleSrc(pluginName, moduleName));
         script.setAttribute('async', 'true');
@@ -101,6 +101,26 @@ exports.notifyModuleExported = function(pluginName, moduleName, moduleExports) {
     }    
 }
 
+exports.addModuleCSSToPage = function(pluginName, moduleName) {
+    var cssElId = exports.toPluginModuleId('pluginA', 'mathUtils') + ':css';
+    var document = windowHandle.getWindow().document;
+    var cssEl = document.getElementById(cssElId);
+    
+    if (cssEl) {
+        // already added to page
+        return;
+    }
+
+    var cssPath = exports.getJSModulesDir(pluginName) + '/' + moduleName + '/style.css';
+    var docHead = getHeadElement();
+    cssEl = createElement('link');
+    cssEl.setAttribute('id', cssElId);
+    cssEl.setAttribute('type', 'text/css');
+    cssEl.setAttribute('rel', 'stylesheet');
+    cssEl.setAttribute('href', cssPath);
+    docHead.appendChild(cssEl);
+}
+
 exports.getPlugins = function() {
     var jenkinsCIGlobal = exports.getJenkins();
     if (!jenkinsCIGlobal.plugins) {
@@ -114,7 +134,11 @@ exports.toPluginModuleId = function(pluginName, moduleName) {
 }
 
 exports.toPluginModuleSrc = function(pluginName, moduleName) {
-    return getResURL() + '/plugin/' + pluginName + '/jsmodules/' + moduleName + '.js';
+    return exports.getJSModulesDir(pluginName) + '/' + moduleName + '.js';
+}
+
+exports.getJSModulesDir = function(pluginName) {
+    return getResURL() + '/plugin/' + pluginName + '/jsmodules';
 }
 
 function getResURL() {
@@ -148,7 +172,7 @@ function getAttribute(element, attributeName) {
         return value;
     } else {
         // try without lowercasing
-        element.getAttribute(attributeName);
+        return element.getAttribute(attributeName);
     }    
 }
 
@@ -159,6 +183,5 @@ function getLoadingModule(plugin, moduleName) {
     if (!plugin.loadingModules[moduleName]) {
         plugin.loadingModules[moduleName] = {};
     }
-    var loadingModule = plugin.loadingModules[moduleName];
-    return loadingModule;
+    return plugin.loadingModules[moduleName];
 }

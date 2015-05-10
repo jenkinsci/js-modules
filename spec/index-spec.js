@@ -36,7 +36,7 @@ describe("index.js", function () {
             // Check that the <script> element was added to the <head>
             var internal = require("../js/internal");
             var document = require('window-handle').getWindow().document;
-            var scriptEl = document.getElementById(internal.toPluginModuleId('pluginA', 'mathUtils'));            
+            var scriptEl = document.getElementById(internal.toPluginModuleId('pluginA', 'mathUtils') + ':js');            
             expect(scriptEl).toBeDefined();
             expect(scriptEl.getAttribute('src')).toBe('/jenkins/plugin/pluginA/jsmodules/mathUtils.js');
                         
@@ -70,6 +70,24 @@ describe("index.js", function () {
                 done();               
             }); // disable async load mode
             
+        });
+    });
+
+        it("- test addModuleCSSToPage", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var internal = require("../js/internal");
+            var document = require('window-handle').getWindow().document;
+
+            var cssEl = document.getElementById(internal.toPluginModuleId('pluginA', 'mathUtils') + ':css');            
+            expect(cssEl).toBe(null);
+            
+            jenkins.addModuleCSSToPage('pluginA', 'mathUtils');
+            cssEl = document.getElementById(internal.toPluginModuleId('pluginA', 'mathUtils') + ':css');
+            expect(cssEl).toBeDefined();
+            expect(cssEl.getAttribute('href')).toBe('/jenkins/plugin/pluginA/jsmodules/mathUtils/style.css');
+            
+            done();
         });
     });
 });
