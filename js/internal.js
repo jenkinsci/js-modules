@@ -102,7 +102,7 @@ exports.notifyModuleExported = function(pluginName, moduleName, moduleExports) {
 }
 
 exports.addModuleCSSToPage = function(pluginName, moduleName) {
-    var cssElId = exports.toPluginModuleId('pluginA', 'mathUtils') + ':css';
+    var cssElId = exports.toPluginModuleId(pluginName, moduleName) + ':css';
     var document = windowHandle.getWindow().document;
     var cssEl = document.getElementById(cssElId);
     
