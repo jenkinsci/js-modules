@@ -33,10 +33,19 @@ describe("index.js", function () {
                 done();               
             }); // timeout before Jasmine does
             
+            // Try requiring the module again immediately. Should be ignored i.e. a second
+            // <script> element should NOT be added to the dom. See the test at the end
+            // of this method.
+            jenkins.requireModule('pluginA', 'mathUtils', 1000).then(function(module) {
+            });
+            
             // Check that the <script> element was added to the <head>
             var internal = require("../js/internal");
             var document = require('window-handle').getWindow().document;
-            var scriptEl = document.getElementById(internal.toPluginModuleId('pluginA', 'mathUtils') + ':js');            
+            var moduleId = internal.toPluginModuleId('pluginA', 'mathUtils') + ':js';
+            
+            var scriptEl = document.getElementById(moduleId);            
+            
             expect(scriptEl).toBeDefined();
             expect(scriptEl.getAttribute('src')).toBe('/jenkins/plugin/pluginA/jsmodules/mathUtils.js');
                         
@@ -50,6 +59,12 @@ describe("index.js", function () {
                     return lhs + rhs;
                 }
             });
+            
+            // Verify that only one <script> element was added to the dom. Remove the one we found and
+            // attempt to find another with the same id - we should fail.
+            internal.getHeadElement().removeChild(scriptEl);
+            scriptEl = document.getElementById(moduleId);
+            expect(scriptEl).toBe(null);
         });
     });
 
@@ -73,7 +88,7 @@ describe("index.js", function () {
         });
     });
 
-        it("- test addModuleCSSToPage", function (done) {
+    it("- test addModuleCSSToPage", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             var internal = require("../js/internal");

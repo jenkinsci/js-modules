@@ -74,14 +74,21 @@ exports.loadModule = function(pluginName, moduleName, onRegisterTimeout) {
     try {
         return waitForRegistration(loadingModule, onRegisterTimeout);
     } finally {
-        // Add the <script> element to the <head>
-        var docHead = getHeadElement();
-        var script = createElement('script');
-        script.setAttribute('id', exports.toPluginModuleId(pluginName, moduleName) + ':js');
-        script.setAttribute('type', 'text/javascript');
-        script.setAttribute('src', exports.toPluginModuleSrc(pluginName, moduleName));
-        script.setAttribute('async', 'true');
-        docHead.appendChild(script);
+        var moduleId = exports.toPluginModuleId(pluginName, moduleName) + ':js';
+        var document = windowHandle.getWindow().document;
+        var script = document.getElementById(moduleId);
+
+        // Add the <script> element to the <head> if it's not already there.
+        if (!script) {
+            var docHead = exports.getHeadElement();
+
+            script = createElement('script');
+            script.setAttribute('id', moduleId);
+            script.setAttribute('type', 'text/javascript');
+            script.setAttribute('src', exports.toPluginModuleSrc(pluginName, moduleName));
+            script.setAttribute('async', 'true');
+            docHead.appendChild(script);
+        }
     }
 }
 
@@ -112,7 +119,7 @@ exports.addModuleCSSToPage = function(pluginName, moduleName) {
     }
 
     var cssPath = exports.getJSModulesDir(pluginName) + '/' + moduleName + '/style.css';
-    var docHead = getHeadElement();
+    var docHead = exports.getHeadElement();
     cssEl = createElement('link');
     cssEl.setAttribute('id', cssElId);
     cssEl.setAttribute('type', 'text/css');
@@ -141,23 +148,23 @@ exports.getJSModulesDir = function(pluginName) {
     return getResURL() + '/plugin/' + pluginName + '/jsmodules';
 }
 
-function getResURL() {
-    var docHead = getHeadElement();
-    var resURL = getAttribute(docHead, "resURL");
-
-    if (!resURL) {
-        throw "Attribute 'resURL' not defined on the document <head> element.";
-    }
-    return resURL;
-}
-
-function getHeadElement() {
+exports.getHeadElement = function() {
     var window = windowHandle.getWindow();
     var docHead = window.document.getElementsByTagName("head");
     if (!docHead || docHead.length == 0) {
         throw 'No head element found in document.';
     }
     return docHead[0];
+}
+
+function getResURL() {
+    var docHead = exports.getHeadElement();
+    var resURL = getAttribute(docHead, "resURL");
+
+    if (!resURL) {
+        throw "Attribute 'resURL' not defined on the document <head> element.";
+    }
+    return resURL;
 }
 
 function createElement(name) {
