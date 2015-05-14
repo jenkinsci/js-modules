@@ -4,10 +4,8 @@ Jenkins CI core JavaScript module (CommonJS).
 Install Package:
 
 ```
-npm install --save jenkins-js-core
+npm install --save jenkins-modules
 ```
-
-__ TODO__ Maybe rename to "jenkins-modules".
  
 # The "problem"
 
@@ -29,7 +27,7 @@ to "export" one or more of those modules in the browser, allowing those modules 
 # Exporting JavaScript modules
 
 A Jenkins Plugin can "export" a JavaScript module (CommonJS style module) by calling
-`require('jenkins-js-core').exportModule`, allowing other plugin bundles to `require` that module
+`require('jenkins-modules').exportModule`, allowing other plugin bundles to `require` that module
 (see next section).
 
 
@@ -39,7 +37,7 @@ exports.add = function(lhs, rhs {
 }
 
 // export the module/bundle
-require('jenkins-js-core').exportModule('pluginA', 'mathUtils', exports);
+require('jenkins-modules').exportModule('pluginA', 'mathUtils', exports);
 ```
 
 We assume that the plugin bundle JavaScript is bundled using [Browserify](http://browserify.org/), and can be
@@ -49,14 +47,14 @@ loaded from `<jenkins>/plugin/<pluginName>/jsmodules/<moduleName>.js` e.g. `/jen
 # Requiring/importing JavaScript modules
 
 A JavaScript module in one plugin ("pluginB") can "require" a module from another plugin ("pluginA" see above)
-by calling `require('jenkins-js-core').requireModule`.
+by calling `require('jenkins-modules').requireModule`.
 
 
 ```javascript
 var mathUtil; // initialise once the module is loaded and registered 
 
 // The require is async (returning a Promise) because the 'pluginA:mathUtils' is loaded async.
-require('jenkins-js-core').requireModule('pluginA', 'mathUtils')
+require('jenkins-modules').requireModule('pluginA', 'mathUtils')
     .then(function(module) {
         // Module loaded ok
         mathUtil = module;
@@ -73,6 +71,6 @@ exports.magicFunc = function() {
 }
 ```
 
-If `require('jenkins-js-core').requireModule` is called for a module that is not yet loaded, 
-`require('jenkins-js-core').requireModule` will trigger the loading of that module from the plugin, hence the 
+If `require('jenkins-modules').requireModule` is called for a module that is not yet loaded, 
+`require('jenkins-modules').requireModule` will trigger the loading of that module from the plugin, hence the 
 async/promise nature i.e. you can't synchronously `get` a module.

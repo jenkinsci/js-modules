@@ -1,7 +1,7 @@
 {
-  "name": "jenkins-js-core",
+  "name": "jenkins-modules",
   "version": "1.0.0-alpha-9",
-  "description": "Jenkins CI core JavaScript module",
+  "description": "Jenkins CI JavaScript modules",
   "main": "js/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,7 +10,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tfennelly/jenkins-js-core"
+    "url": "https://github.com/tfennelly/jenkins-modules"
   },
   "devDependencies": {
     "gulp": "^3.8.11",
