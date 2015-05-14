@@ -4,9 +4,11 @@
     
 var jsdom = require("jsdom");
 
-exports.onJenkinsPage = function(testFunc) {
-    var JENKINS_PAGE = '<html><head resURL="/jenkins"></head><body><div></div></body></html>';
-    jsdom.env(JENKINS_PAGE, [],
+exports.onJenkinsPage = function(testFunc, content) {
+    if (!content) {
+        content = '<html><head resURL="/jenkins"></head><body><div></div></body></html>';
+    }
+    jsdom.env(content, [],
         function (errors, window) {
             require("window-handle").setWindow(window);
             testFunc();

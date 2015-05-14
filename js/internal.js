@@ -1,15 +1,16 @@
 var promise = require("./promise");
 var windowHandle = require("window-handle");
+var rootURL;
 
 exports.getJenkins = function() {
     var window = windowHandle.getWindow();
     if (!window.jenkinsCIGlobal) {
         window.jenkinsCIGlobal = {
-            resURL: getResURL()
+            rootURL: getRootURL()
         };
     }
     return window.jenkinsCIGlobal;
-}
+};
 
 exports.getPlugin = function(pluginName) {
     var plugins = exports.getPlugins();
@@ -19,7 +20,7 @@ exports.getPlugin = function(pluginName) {
         plugins[pluginName] = plugin;
     }
     return plugin;
-}
+};
 
 exports.loadModule = function(pluginName, moduleName, onRegisterTimeout) {
     var plugin = exports.getPlugin(pluginName);
@@ -90,7 +91,7 @@ exports.loadModule = function(pluginName, moduleName, onRegisterTimeout) {
             docHead.appendChild(script);
         }
     }
-}
+};
 
 exports.notifyModuleExported = function(pluginName, moduleName, moduleExports) {
     var plugin = exports.getPlugin(pluginName);
@@ -106,7 +107,7 @@ exports.notifyModuleExported = function(pluginName, moduleName, moduleExports) {
             waiter.resolve(moduleExports);
         }
     }    
-}
+};
 
 exports.addModuleCSSToPage = function(pluginName, moduleName) {
     var cssElId = exports.toPluginModuleId(pluginName, moduleName) + ':css';
@@ -126,7 +127,7 @@ exports.addModuleCSSToPage = function(pluginName, moduleName) {
     cssEl.setAttribute('rel', 'stylesheet');
     cssEl.setAttribute('href', cssPath);
     docHead.appendChild(cssEl);
-}
+};
 
 exports.getPlugins = function() {
     var jenkinsCIGlobal = exports.getJenkins();
@@ -134,19 +135,19 @@ exports.getPlugins = function() {
         jenkinsCIGlobal.plugins = {};
     }
     return jenkinsCIGlobal.plugins;
-}
+};
 
 exports.toPluginModuleId = function(pluginName, moduleName) {
     return 'jenkins-plugin-module:' + pluginName + ':' + moduleName;
-}
+};
 
 exports.toPluginModuleSrc = function(pluginName, moduleName) {
     return exports.getJSModulesDir(pluginName) + '/' + moduleName + '.js';
-}
+};
 
 exports.getJSModulesDir = function(pluginName) {
-    return getResURL() + '/plugin/' + pluginName + '/jsmodules';
-}
+    return getRootURL() + '/plugin/' + pluginName + '/jsmodules';
+};
 
 exports.getHeadElement = function() {
     var window = windowHandle.getWindow();
@@ -155,9 +156,17 @@ exports.getHeadElement = function() {
         throw 'No head element found in document.';
     }
     return docHead[0];
-}
+};
 
-function getResURL() {
+exports.setRootURL = function(url) {
+    rootURL = url;
+};
+
+function getRootURL() {
+    if (rootURL) {
+        return rootURL;
+    }
+    
     var docHead = exports.getHeadElement();
     var resURL = getAttribute(docHead, "resURL");
 

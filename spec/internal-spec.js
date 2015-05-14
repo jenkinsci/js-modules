@@ -11,7 +11,7 @@ describe("internal.js", function () {
             var internal = require("../js/internal");                                
             var jenkins = internal.getJenkins();
             
-            expect(jenkins.resURL).toBe('/jenkins');
+            expect(jenkins.rootURL).toBe('/jenkins');
             done();
         });
     });

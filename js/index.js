@@ -42,7 +42,7 @@ exports.requireModule = function(pluginName, moduleName, onRegisterTimeout) {
             }
         });
     });
-}
+};
 
 /**
  * Export a module.
@@ -62,19 +62,28 @@ exports.exportModule = function(pluginName, moduleName, moduleExports) {
     plugin[moduleName] = module;
     
     // Notify all that the module has been registered. See internal.loadModule also.
-    internal.notifyModuleExported(pluginName, moduleName, moduleExports)
-}
+    internal.notifyModuleExported(pluginName, moduleName, moduleExports);
+};
 
 /**
  * Add a module's CSS to the browser page.
  * 
  * <p>
  * The assumption is that the CSS can be accessed at
- * {@code <resURL>/plugin/<pluginName>/jsmodules/<moduleName>/style.css}
+ * {@code <rootURL>/plugin/<pluginName>/jsmodules/<moduleName>/style.css}
  * 
  * @param pluginName The Jenkins plugin in which the module resides.
  * @param moduleName The name of the module. 
  */
 exports.addModuleCSSToPage = function(pluginName, moduleName) {
-    internal.addModuleCSSToPage(pluginName, moduleName)
-}
+    internal.addModuleCSSToPage(pluginName, moduleName);
+};
+
+/**
+ * Set the Jenkins root/base URL.
+ * 
+ * @param rootUrl The root/base URL.
+ */
+exports.setRootURL = function(rootUrl) {
+    internal.setRootURL(rootUrl);
+};

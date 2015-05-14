@@ -105,4 +105,34 @@ describe("index.js", function () {
             done();
         });
     });
+
+
+    it("- test rootURL/resURL not defined", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            try {
+                jenkins.exportModule('pluginA', 'mathUtils', {
+                    add: function(lhs, rhs) {
+                        return lhs + rhs;
+                    }
+                });                
+            } catch (e) {
+                expect(e).toBe("Attribute 'resURL' not defined on the document <head> element.");
+                done();                
+            }
+        }, '<html><head></head></html>');
+    });
+
+    it("- test rootURL/resURL defined", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            jenkins.setRootURL('/jenkins')
+            jenkins.exportModule('pluginA', 'mathUtils', {
+                add: function(lhs, rhs) {
+                    return lhs + rhs;
+                }
+            });
+            done();
+        }, '<html><head></head></html>');
+    });
 });
