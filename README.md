@@ -1,4 +1,4 @@
-Jenkins CI core JavaScript module (CommonJS).
+Jenkins CI JavaScript module loader.
 
  
 Install Package:
