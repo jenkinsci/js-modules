@@ -1,6 +1,6 @@
 {
   "name": "jenkins-js-core",
-  "version": "1.0.0-alpha-8",
+  "version": "1.0.0-alpha-9",
   "description": "Jenkins CI core JavaScript module",
   "main": "js/index.js",
   "scripts": {
@@ -18,6 +18,6 @@
     "jsdom": "^3.1.2"
   },
   "dependencies": {
-    "window-handle": "0.0.3"
+    "window-handle": "0.0.4"
   }
 }

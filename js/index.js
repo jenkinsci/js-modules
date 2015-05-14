@@ -1,5 +1,6 @@
 var internal = require("./internal");
 var promise = require("./promise");
+var windowHandle = require('window-handle');
 
 /**
  * Require a module.
@@ -14,22 +15,33 @@ var promise = require("./promise");
  *
  * @return A Promise, allowing async load of the module.
  */
-exports.requireModule = function(pluginName, moduleName, onRegisterTimeout) {    
-    var plugin = internal.getPlugin(pluginName);
-    var module = plugin[moduleName];
-    if (module) {
-        // module already loaded
-        return promise.make(function (resolve) {
-            resolve(module.exports);
+exports.requireModule = function(pluginName, moduleName, onRegisterTimeout) {
+    return promise.make(function (resolve, reject) {
+        // getPlugin etc needs to access the 'window' global. We want to make sure that
+        // exists before attempting to fulfill the require operation. It may not exists
+        // immediately in a test env.
+        windowHandle.getWindow(function() {
+            var plugin = internal.getPlugin(pluginName);
+            var module = plugin[moduleName];
+            if (module) {
+                // module already loaded
+                resolve(module.exports);
+            } else {
+                if (onRegisterTimeout === 0) {
+                    throw 'Plugin module ' + pluginName + ':' + moduleName + ' require failure. Async load mode disabled.';
+                }
+
+                // module not loaded. Load async, fulfilling promise once registered
+                internal.loadModule(pluginName, moduleName, onRegisterTimeout)
+                    .then(function(moduleExports) {
+                        resolve(moduleExports);
+                    })
+                    .catch(function(error) {
+                        reject(error);
+                    });
+            }
         });
-    } else {
-        if (onRegisterTimeout === 0) {
-            throw 'Plugin module ' + pluginName + ':' + moduleName + ' require failure. Async load mode disabled.';
-        }
-        
-        // module not loaded. Load async, fulfilling promise once registered
-        return internal.loadModule(pluginName, moduleName, onRegisterTimeout);
-    }
+    });
 }
 
 /**
