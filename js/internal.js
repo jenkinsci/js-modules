@@ -22,6 +22,44 @@ exports.getPlugin = function(pluginName) {
     return plugin;
 };
 
+exports.requireModule = function(moduleQName, onRegisterTimeout) {
+    return promise.make(function (resolve, reject) {
+        // getPlugin etc needs to access the 'window' global. We want to make sure that
+        // exists before attempting to fulfill the require operation. It may not exists
+        // immediately in a test env.
+        windowHandle.getWindow(function() {
+            var qNameTokens = moduleQName.split(":");
+            
+            if (qNameTokens.length != 2) {
+                throw "'moduleQName' argument must contain 2 tokens i.e. '<pluginName>:<moduleName>'";
+            }
+    
+            var pluginName = qNameTokens[0].trim();
+            var moduleName = qNameTokens[1].trim();
+
+            var plugin = exports.getPlugin(pluginName);
+            var module = plugin[moduleName];
+            if (module) {
+                // module already loaded
+                resolve(module.exports);
+            } else {
+                if (onRegisterTimeout === 0) {
+                    throw 'Plugin module ' + pluginName + ':' + moduleName + ' require failure. Async load mode disabled.';
+                }
+
+                // module not loaded. Load async, fulfilling promise once registered
+                exports.loadModule(pluginName, moduleName, onRegisterTimeout)
+                    .then(function(moduleExports) {
+                        resolve(moduleExports);
+                    })
+                    .catch(function(error) {
+                        reject(error);
+                    });
+            }
+        });
+    });    
+}
+
 exports.loadModule = function(pluginName, moduleName, onRegisterTimeout) {
     var plugin = exports.getPlugin(pluginName);
 

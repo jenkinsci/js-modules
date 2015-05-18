@@ -1,6 +1,5 @@
 var internal = require("./internal");
 var promise = require("./promise");
-var windowHandle = require('window-handle');
 
 /**
  * Require a module.
@@ -16,41 +15,80 @@ var windowHandle = require('window-handle');
  * @return A Promise, allowing async load of the module.
  */
 exports.requireModule = function(moduleQName, onRegisterTimeout) {
-    var qNameTokens = moduleQName.split(":");
+    return internal.requireModule(moduleQName, onRegisterTimeout);
+}
+
+/**
+ * Require a set of module.
+ *
+ * <p>
+ * Responsible for triggering the async loading of modules from plugins if
+ * a given module is not already loaded.
+ *
+ * @param moduleQNames... A list of module "qualified" names, each containing the module name prefixed with the Jenkins plugin name
+ * separated by a colon i.e. "<pluginName>:<moduleName>" e.g. "jquery:jquery2".
+ * @param onRegisterTimeout Millisecond duration before onRegister times out. Defaults to 10000 (10s) if not specified.
+ *
+ * @return A Promise, allowing async load of all modules. The promise is only fulfilled when all modules are loaded.
+ */
+exports.requireModules = function() {
+    var moduleQNames = [];
+    var onRegisterTimeout;
     
-    if (qNameTokens.length != 2) {
-        throw "'moduleQName' argument must contain 2 tokens i.e. '<pluginName>:<moduleName>'";
+    for (var i = 0; i < arguments.length; i++) {
+        var argument = arguments[i];
+        if (typeof argument === 'string') {
+            moduleQNames.push(argument);
+        } else if (typeof argument === 'number') {
+            onRegisterTimeout = argument;
+        }
     }
     
-    var pluginName = qNameTokens[0].trim();
-    var moduleName = qNameTokens[1].trim();
+    if (moduleQNames.length == 0) {
+        throw "No plugin module names specified.";
+    }
     
     return promise.make(function (resolve, reject) {
-        // getPlugin etc needs to access the 'window' global. We want to make sure that
-        // exists before attempting to fulfill the require operation. It may not exists
-        // immediately in a test env.
-        windowHandle.getWindow(function() {
-            var plugin = internal.getPlugin(pluginName);
-            var module = plugin[moduleName];
-            if (module) {
-                // module already loaded
-                resolve(module.exports);
-            } else {
-                if (onRegisterTimeout === 0) {
-                    throw 'Plugin module ' + pluginName + ':' + moduleName + ' require failure. Async load mode disabled.';
+        var fulfillments = [];
+        
+        function onFulfillment() {
+            if (fulfillments.length === moduleQNames.length) {
+                var modules = [];
+                for (var i = 0; i < fulfillments.length; i++) {
+                    if (fulfillments[i].value) {
+                        modules.push(fulfillments[i].value);
+                    } else {
+                        // don't have everything yet so can't fulfill all.
+                        return;
+                    }
                 }
-
-                // module not loaded. Load async, fulfilling promise once registered
-                internal.loadModule(pluginName, moduleName, onRegisterTimeout)
-                    .then(function(moduleExports) {
-                        resolve(moduleExports);
+                // If we make it here, then we have fulfilled all individual promises, which 
+                // means we can now fulfill the top level requireModules promise.
+                resolve(modules);
+            }
+        }        
+        
+        // doRequire for each module
+        for (var i = 0; i < moduleQNames.length; i++) {           
+            function doRequire(moduleQName) {
+                var promise = internal.requireModule(moduleQName, onRegisterTimeout);
+                var fulfillment = {
+                    promise: promise,
+                    value: undefined
+                };
+                fulfillments.push(fulfillment);
+                promise
+                    .then(function(value) {
+                        fulfillment.value = value;
+                        onFulfillment();
                     })
                     .catch(function(error) {
                         reject(error);
                     });
             }
-        });
-    });
+            doRequire(moduleQNames[i]);
+        }
+    }).applyArgsOnFulfill();    
 };
 
 /**

@@ -55,7 +55,7 @@ var mathUtil; // initialise once the module is loaded and registered
 
 // The require is async (returning a Promise) because the 'pluginA:mathUtils' is loaded async.
 require('jenkins-modules').requireModule('pluginA:mathUtils')
-    .then(function(module) {
+    .then(function(mathUtils) {
         // Module loaded ok
         mathUtil = module;
     })
@@ -74,3 +74,28 @@ exports.magicFunc = function() {
 If `require('jenkins-modules').requireModule` is called for a module that is not yet loaded, 
 `require('jenkins-modules').requireModule` will trigger the loading of that module from the plugin, hence the 
 async/promise nature i.e. you can't synchronously `get` a module.
+
+You can also perform a `requireModules` operation if you require loading of multiple modules. So if you require
+2 modules (e.g. "bootstrap3" and "jqueryui1") before proceeding, you can do the following:
+
+```javascript
+// Again, the require is async (returning a Promise). The promise will not be fulfilled until both
+// "bootstrap3" and "jqueryui1" are loaded.
+require('jenkins-modules').requireModules('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
+    .then(function(bootstrap3, jqueryui1) {
+        // Note how the loaded modules are passed as args in the 
+        // same order as they are specified in the call to requireModule
+    });
+}
+```
+
+You might also call `requireModules` in your "top level" script if you want to make sure your "application"
+only runs after all required modules are loaded. 
+
+```javascript
+require('jenkins-modules').requireModules('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
+    .then(function() {
+        // Now it's safe for my "application" to run...
+    });
+}
+```

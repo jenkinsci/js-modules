@@ -25,18 +25,35 @@ function APromise() {
     this.state = 'PENDING';
     this.whenFulfilled = undefined;
     this.whenRejected = undefined;
+    this.applyFulfillArgs = false;
+}
+
+APromise.prototype.applyArgsOnFulfill = function() {
+    this.applyFulfillArgs = true;
+    return this;
 }
 
 APromise.prototype.resolve = function (result) {
     this.state = 'FULFILLED';
-    if (this.whenFulfilled) {
-        this.whenFulfilled(result);
-    }
-    // redefine "then" to call immediately
-    this.then = function (whenFulfilled, whenRejected) {
-        if (whenFulfilled) {
+    
+    var thePromise = this;
+    function doFulfill(whenFulfilled, result) {
+        if (thePromise.applyFulfillArgs) {
+            whenFulfilled.apply(whenFulfilled, result);
+        } else {
             whenFulfilled(result);
         }
+    }
+    
+    if (this.whenFulfilled) {
+        doFulfill(this.whenFulfilled, result);
+    }
+    // redefine "then" to call immediately
+    this.then = function (whenFulfilled) {
+        if (whenFulfilled) {
+            doFulfill(whenFulfilled, result);
+        }
+        return this;
     }
 };
 
@@ -50,6 +67,7 @@ APromise.prototype.reject = function (reason) {
         if (whenRejected) {
             whenRejected(reason);
         }
+        return this;
     }
 };
 

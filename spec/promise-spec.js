@@ -5,8 +5,6 @@
 
 var promise = require("../js/promise");
 
-console.log('Boooooom');
-
 describe("promise.js", function () {
 
     // promised is resolved after the "then" func is added

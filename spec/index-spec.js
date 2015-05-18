@@ -7,7 +7,7 @@ var testUtil = require("./test-util");
 
 describe("index.js", function () {
 
-    it("- test require and exportModule timeout", function (done) {
+    it("- test requireModule and exportModule timeout", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
@@ -21,7 +21,7 @@ describe("index.js", function () {
         });
     });
 
-    it("- test require and exportModule async successful", function (done) {
+    it("- test requireModule and exportModule async successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
@@ -68,7 +68,7 @@ describe("index.js", function () {
         });
     });
 
-    it("- test require and exportModule sync successful", function (done) {
+    it("- test requireModule and exportModule sync successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
 
@@ -85,6 +85,63 @@ describe("index.js", function () {
                 done();               
             }); // disable async load mode
             
+        });
+    });
+
+    it("- test requireModules and exportModule async successful", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            
+            // Require before the modules are registered.
+            // The require should "trigger" the loading of the module from the plugin.
+            // Should pass because exportModule will happen before the timeout
+            jenkins.requireModules('pluginA:mathUtils', 'pluginB:timeUtils', 2000)
+                .then(function(mathUtils, timeUtils) {
+                    // This function should only be called once both modules have been exported
+                    expect(mathUtils.add(2,2)).toBe(4);
+                    expect(timeUtils.now().getTime()).toBe(1000000000000);
+                    done();               
+                }); // timeout before Jasmine does
+            
+            // Now mimic registering of the plugin modules.
+            jenkins.exportModule('pluginA', 'mathUtils', {
+                add: function(lhs, rhs) {
+                    return lhs + rhs;
+                }
+            });
+            jenkins.exportModule('pluginB', 'timeUtils', {
+                now: function() {
+                    return new Date(1000000000000);
+                }
+            });
+        });
+    });
+
+    it("- test requireModules and exportModule sync successful", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            
+            // Register the plugin modules before requiring.
+            jenkins.exportModule('pluginA', 'mathUtils', {
+                add: function(lhs, rhs) {
+                    return lhs + rhs;
+                }
+            });
+            jenkins.exportModule('pluginB', 'timeUtils', {
+                now: function() {
+                    return new Date(1000000000000);
+                }
+            });
+            
+            // Now require.
+            // Should pass immediately because exportModule has already happened for each plugin.
+            jenkins.requireModules('pluginA:mathUtils', 'pluginB:timeUtils', 0) // disable async load mode
+                .then(function(mathUtils, timeUtils) {
+                    // This function should only be called once both modules have been exported
+                    expect(mathUtils.add(2,2)).toBe(4);
+                    expect(timeUtils.now().getTime()).toBe(1000000000000);
+                    done();               
+                }); // timeout before Jasmine does
         });
     });
 
