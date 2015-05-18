@@ -84,7 +84,7 @@ You can also perform a `requireModules` operation if you require loading of mult
 require('jenkins-modules').requireModules('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
     .then(function(bootstrap3, jqueryui1) {
         // Note how the loaded modules are passed as args in the 
-        // same order as they are specified in the call to requireModule
+        // same order as they are specified in the call to requireModules.
     });
 }
 ```
