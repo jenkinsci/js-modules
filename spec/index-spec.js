@@ -12,7 +12,7 @@ describe("index.js", function () {
             var jenkins = require("../js/index");
             
             // should fail because a exportModule never happens
-            jenkins.requireModule('pluginA', 'mathUtils', 100)
+            jenkins.requireModule('pluginA:mathUtils', 100)
                 .catch(function(error) {
                     expect(error.reason).toBe('timeout');
                     expect(error.detail).toBe("Please verify that the plugin 'pluginA' is installed, and that it registers a module named 'mathUtils'");
@@ -28,7 +28,7 @@ describe("index.js", function () {
             // Require before the module is registered.
             // The require should "trigger" the loading of the module from the plugin.
             // Should pass because exportModule will happen before the timeout
-            jenkins.requireModule('pluginA', 'mathUtils', 2000).then(function(module) {
+            jenkins.requireModule('pluginA:mathUtils', 2000).then(function(module) {
                 expect(module.add(2,2)).toBe(4);
                 done();               
             }); // timeout before Jasmine does
@@ -36,7 +36,7 @@ describe("index.js", function () {
             // Try requiring the module again immediately. Should be ignored i.e. a second
             // <script> element should NOT be added to the dom. See the test at the end
             // of this method.
-            jenkins.requireModule('pluginA', 'mathUtils', 1000).then(function(module) {
+            jenkins.requireModule('pluginA:mathUtils', 1000).then(function(module) {
             });
             
             // Check that the <script> element was added to the <head>
@@ -80,7 +80,7 @@ describe("index.js", function () {
             });
             
             // Should pass immediately because exportModule has already happened.
-            jenkins.requireModule('pluginA', 'mathUtils', 0).then(function(module) {
+            jenkins.requireModule('pluginA:mathUtils', 0).then(function(module) {
                 expect(module.add(2,2)).toBe(4);
                 done();               
             }); // disable async load mode

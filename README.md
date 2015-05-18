@@ -54,7 +54,7 @@ by calling `require('jenkins-modules').requireModule`.
 var mathUtil; // initialise once the module is loaded and registered 
 
 // The require is async (returning a Promise) because the 'pluginA:mathUtils' is loaded async.
-require('jenkins-modules').requireModule('pluginA', 'mathUtils')
+require('jenkins-modules').requireModule('pluginA:mathUtils')
     .then(function(module) {
         // Module loaded ok
         mathUtil = module;

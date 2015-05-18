@@ -9,13 +9,22 @@ var windowHandle = require('window-handle');
  * Responsible for triggering the async loading of the module from the plugin if
  * the module is not already loaded.
  *
- * @param pluginName The Jenkins plugin in which the module resides.
- * @param moduleName The name of the module.
+ * @param moduleQName The module "qualified" name containing the module name prefixed with the Jenkins plugin name
+ * separated by a colon i.e. "<pluginName>:<moduleName>" e.g. "jquery:jquery2".
  * @param onRegisterTimeout Millisecond duration before onRegister times out. Defaults to 10000 (10s) if not specified.
  *
  * @return A Promise, allowing async load of the module.
  */
-exports.requireModule = function(pluginName, moduleName, onRegisterTimeout) {
+exports.requireModule = function(moduleQName, onRegisterTimeout) {
+    var qNameTokens = moduleQName.split(":");
+    
+    if (qNameTokens.length != 2) {
+        throw "'moduleQName' argument must contain 2 tokens i.e. '<pluginName>:<moduleName>'";
+    }
+    
+    var pluginName = qNameTokens[0].trim();
+    var moduleName = qNameTokens[1].trim();
+    
     return promise.make(function (resolve, reject) {
         // getPlugin etc needs to access the 'window' global. We want to make sure that
         // exists before attempting to fulfill the require operation. It may not exists
