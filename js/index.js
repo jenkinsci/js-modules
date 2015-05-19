@@ -1,4 +1,5 @@
 var internal = require("./internal");
+var windowHandle = require("window-handle");
 var promise = require("./promise");
 
 /**
@@ -99,17 +100,21 @@ exports.requireModules = function() {
  * @param moduleExports The CommonJS style module exports.
  */
 exports.exportModule = function(pluginName, moduleName, moduleExports) {
-    var plugin = internal.getPlugin(pluginName);
-    if (plugin[moduleName]) {
-        throw "Jenkins plugin module '" + pluginName + ":" + moduleName + "' already registered.";
-    }
-    var module = {
-        exports: moduleExports
-    };
-    plugin[moduleName] = module;
-    
-    // Notify all that the module has been registered. See internal.loadModule also.
-    internal.notifyModuleExported(pluginName, moduleName, moduleExports);
+    // getPlugin etc needs to access the 'window' global. We want to make sure that
+    // exists before continuing. It may not exists immediately in a test env.
+    windowHandle.getWindow(function() {
+        var plugin = internal.getPlugin(pluginName);
+        if (plugin[moduleName]) {
+            throw "Jenkins plugin module '" + pluginName + ":" + moduleName + "' already registered.";
+        }
+        var module = {
+            exports: moduleExports
+        };
+        plugin[moduleName] = module;
+        
+        // Notify all that the module has been registered. See internal.loadModule also.
+        internal.notifyModuleExported(pluginName, moduleName, moduleExports);
+    });
 };
 
 /**
@@ -123,7 +128,11 @@ exports.exportModule = function(pluginName, moduleName, moduleExports) {
  * @param moduleName The name of the module. 
  */
 exports.addModuleCSSToPage = function(pluginName, moduleName) {
-    internal.addModuleCSSToPage(pluginName, moduleName);
+    // getPlugin etc needs to access the 'window' global. We want to make sure that
+    // exists before continuing. It may not exists immediately in a test env.
+    windowHandle.getWindow(function() {
+        internal.addModuleCSSToPage(pluginName, moduleName);
+    });
 };
 
 /**
