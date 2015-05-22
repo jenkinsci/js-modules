@@ -1,6 +1,6 @@
 {
   "name": "jenkins-modules",
-  "version": "1.0.0-alpha-12",
+  "version": "1.0.0-alpha-13",
   "description": "Jenkins CI JavaScript modules",
   "main": "js/index.js",
   "scripts": {
@@ -18,6 +18,6 @@
     "jsdom": "^3.1.2"
   },
   "dependencies": {
-    "window-handle": "0.0.4"
+    "window-handle": "0.0.6"
   }
 }

@@ -98,22 +98,29 @@ exports.requireModules = function() {
  * @param pluginName The Jenkins plugin in which the module resides.
  * @param moduleName The name of the module. 
  * @param moduleExports The CommonJS style module exports.
+ * @param onError On error callback;
  */
-exports.exportModule = function(pluginName, moduleName, moduleExports) {
+exports.exportModule = function(pluginName, moduleName, moduleExports, onError) {
     // getPlugin etc needs to access the 'window' global. We want to make sure that
     // exists before continuing. It may not exists immediately in a test env.
     windowHandle.getWindow(function() {
-        var plugin = internal.getPlugin(pluginName);
-        if (plugin[moduleName]) {
-            throw "Jenkins plugin module '" + pluginName + ":" + moduleName + "' already registered.";
+        try {
+            var plugin = internal.getPlugin(pluginName);
+            if (plugin[moduleName]) {
+                throw "Jenkins plugin module '" + pluginName + ":" + moduleName + "' already registered.";
+            }
+            var module = {
+                exports: moduleExports
+            };
+            plugin[moduleName] = module;
+            
+            // Notify all that the module has been registered. See internal.loadModule also.
+            internal.notifyModuleExported(pluginName, moduleName, moduleExports);
+        } catch (e) {
+            if (onError) {
+                onError(e);
+            }
         }
-        var module = {
-            exports: moduleExports
-        };
-        plugin[moduleName] = module;
-        
-        // Notify all that the module has been registered. See internal.loadModule also.
-        internal.notifyModuleExported(pluginName, moduleName, moduleExports);
     });
 };
 
@@ -126,12 +133,19 @@ exports.exportModule = function(pluginName, moduleName, moduleExports) {
  * 
  * @param pluginName The Jenkins plugin in which the module resides.
  * @param moduleName The name of the module. 
+ * @param onError On error callback;
  */
-exports.addModuleCSSToPage = function(pluginName, moduleName) {
+exports.addModuleCSSToPage = function(pluginName, moduleName, onError) {
     // getPlugin etc needs to access the 'window' global. We want to make sure that
     // exists before continuing. It may not exists immediately in a test env.
     windowHandle.getWindow(function() {
-        internal.addModuleCSSToPage(pluginName, moduleName);
+        try {
+            internal.addModuleCSSToPage(pluginName, moduleName);
+        } catch (e) {
+            if (onError) {
+                onError(e);
+            }
+        }
     });
 };
 

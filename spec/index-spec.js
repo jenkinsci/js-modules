@@ -167,16 +167,14 @@ describe("index.js", function () {
     it("- test rootURL/resURL not defined", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
-            try {
-                jenkins.exportModule('pluginA', 'mathUtils', {
-                    add: function(lhs, rhs) {
-                        return lhs + rhs;
-                    }
-                });                
-            } catch (e) {
+            jenkins.exportModule('pluginA', 'mathUtils', {
+                add: function(lhs, rhs) {
+                    return lhs + rhs;
+                }
+            }, function (e) {
                 expect(e).toBe("Attribute 'resURL' not defined on the document <head> element.");
-                done();                
-            }
+                done();
+            });
         }, '<html><head></head></html>');
     });
 
