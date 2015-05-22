@@ -117,6 +117,7 @@ exports.exportModule = function(pluginName, moduleName, moduleExports, onError) 
             // Notify all that the module has been registered. See internal.loadModule also.
             internal.notifyModuleExported(pluginName, moduleName, moduleExports);
         } catch (e) {
+            console.error(e);
             if (onError) {
                 onError(e);
             }
@@ -142,6 +143,7 @@ exports.addModuleCSSToPage = function(pluginName, moduleName, onError) {
         try {
             internal.addModuleCSSToPage(pluginName, moduleName);
         } catch (e) {
+            console.error(e);
             if (onError) {
                 onError(e);
             }
