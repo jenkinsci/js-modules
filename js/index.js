@@ -159,3 +159,13 @@ exports.addModuleCSSToPage = function(pluginName, moduleName, onError) {
 exports.setRootURL = function(rootUrl) {
     internal.setRootURL(rootUrl);
 };
+
+/**
+ * Manually initialise the Jenkins Global.
+ * <p>
+ * This should only ever be called from a test environment.
+ */
+exports.initJenkinsGlobal = function() {
+    internal.initJenkinsGlobal();
+};
+

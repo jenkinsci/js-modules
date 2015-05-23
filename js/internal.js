@@ -1,15 +1,30 @@
 var promise = require("./promise");
 var windowHandle = require("window-handle");
-var rootURL;
+var jenkinsCIGlobal;
+
+
+exports.initJenkinsGlobal = function() {
+    jenkinsCIGlobal = {
+    };
+};
+
+exports.clearJenkinsGlobal = function() {    
+    jenkinsCIGlobal = undefined;
+};
 
 exports.getJenkins = function() {
-    var window = windowHandle.getWindow();
-    if (!window.jenkinsCIGlobal) {
-        window.jenkinsCIGlobal = {
-            rootURL: getRootURL()
-        };
+    if (jenkinsCIGlobal) {
+        return jenkinsCIGlobal;
     }
-    return window.jenkinsCIGlobal;
+    var window = windowHandle.getWindow();
+    if (window.jenkinsCIGlobal) {
+        jenkinsCIGlobal = window.jenkinsCIGlobal;
+    } else {
+        exports.initJenkinsGlobal();
+        jenkinsCIGlobal.rootURL = getRootURL();
+        window.jenkinsCIGlobal = jenkinsCIGlobal;
+    }   
+    return jenkinsCIGlobal;
 };
 
 exports.getPlugin = function(pluginName) {
@@ -196,13 +211,16 @@ exports.getHeadElement = function() {
     return docHead[0];
 };
 
-exports.setRootURL = function(url) {
-    rootURL = url;
+exports.setRootURL = function(url) {    
+    if (!jenkinsCIGlobal) {
+        exports.initJenkinsGlobal();
+    }
+    jenkinsCIGlobal.rootURL = url;
 };
 
 function getRootURL() {
-    if (rootURL) {
-        return rootURL;
+    if (jenkinsCIGlobal && jenkinsCIGlobal.rootURL) {
+        return jenkinsCIGlobal.rootURL;
     }
     
     var docHead = exports.getHeadElement();
@@ -211,6 +229,11 @@ function getRootURL() {
     if (!resURL) {
         throw "Attribute 'resURL' not defined on the document <head> element.";
     }
+
+    if (jenkinsCIGlobal) {
+        jenkinsCIGlobal.rootURL = resURL;
+    }
+    
     return resURL;
 }
 
