@@ -1,5 +1,4 @@
 var internal = require("./internal");
-var windowHandle = require("window-handle");
 var promise = require("./promise");
 
 /**
@@ -101,9 +100,7 @@ exports.requireModules = function() {
  * @param onError On error callback;
  */
 exports.exportModule = function(pluginName, moduleName, moduleExports, onError) {
-    // getPlugin etc needs to access the 'window' global. We want to make sure that
-    // exists before continuing. It may not exists immediately in a test env.
-    windowHandle.getWindow(function() {
+    internal.onReady(function() {
         try {
             var plugin = internal.getPlugin(pluginName);
             if (plugin[moduleName]) {
@@ -137,9 +134,7 @@ exports.exportModule = function(pluginName, moduleName, moduleExports, onError) 
  * @param onError On error callback;
  */
 exports.addModuleCSSToPage = function(pluginName, moduleName, onError) {
-    // getPlugin etc needs to access the 'window' global. We want to make sure that
-    // exists before continuing. It may not exists immediately in a test env.
-    windowHandle.getWindow(function() {
+    internal.onReady(function() {
         try {
             internal.addModuleCSSToPage(pluginName, moduleName);
         } catch (e) {

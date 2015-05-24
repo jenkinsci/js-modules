@@ -2,6 +2,17 @@ var promise = require("./promise");
 var windowHandle = require("window-handle");
 var jenkinsCIGlobal;
 
+exports.onReady = function(callback) {
+    // This allows test based initialization of jenkins-modules when there might 
+    // not yet be a global window object.
+    if (jenkinsCIGlobal) {
+        callback();
+    } else {
+        windowHandle.getWindow(function() {
+            callback();
+        });
+    }    
+}
 
 exports.initJenkinsGlobal = function() {
     jenkinsCIGlobal = {
