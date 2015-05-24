@@ -53,7 +53,7 @@ exports.requireModule = function(moduleQName, onRegisterTimeout) {
         // getPlugin etc needs to access the 'window' global. We want to make sure that
         // exists before attempting to fulfill the require operation. It may not exists
         // immediately in a test env.
-        windowHandle.getWindow(function() {
+        exports.onReady(function() {
             var qNameTokens = moduleQName.split(":");
             
             if (qNameTokens.length != 2) {
