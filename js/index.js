@@ -19,6 +19,28 @@ exports.requireModule = function(moduleQName, onRegisterTimeout) {
 }
 
 /**
+ * Synchronously "get" a module that it already loaded/registered.
+ *
+ * <p>
+ * This function will throw an error if the module is not already loaded via an outer call to 'requireModule'
+ * (or 'requireModules').
+ *
+ * @param moduleQName The module "qualified" name containing the module name prefixed with the Jenkins plugin name
+ * separated by a colon i.e. "<pluginName>:<moduleName>" e.g. "jquery:jquery2".
+ *
+ * @return The module.
+ */
+exports.getModule = function(moduleQName) {
+    var parsedModuleName = internal.parseModuleQName(moduleQName);
+    var module = internal.getModule(parsedModuleName.pluginName, parsedModuleName.moduleName);    
+    if (!module) {
+        throw "Unable to perform synchronous 'getModule' for module '" + moduleQName + "'. This module is not pre-loaded. " +
+            "The module needs to have been asynchronously pre-loaded via an outer call to 'requireModule' (or 'requireModules').";
+    }
+    return module;
+}
+
+/**
  * Require a set of module.
  *
  * <p>

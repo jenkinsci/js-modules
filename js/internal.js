@@ -54,31 +54,23 @@ exports.requireModule = function(moduleQName, onRegisterTimeout) {
         // exists before attempting to fulfill the require operation. It may not exists
         // immediately in a test env.
         exports.onReady(function() {
-            var qNameTokens = moduleQName.split(":");
+            var parsedModuleName = exports.parseModuleQName(moduleQName);
+            var module = exports.getModule(parsedModuleName.pluginName, parsedModuleName.moduleName);
             
-            if (qNameTokens.length != 2) {
-                throw "'moduleQName' argument must contain 2 tokens i.e. '<pluginName>:<moduleName>'";
-            }
-    
-            var pluginName = qNameTokens[0].trim();
-            var moduleName = qNameTokens[1].trim();
-
-            var plugin = exports.getPlugin(pluginName);
-            var module = plugin[moduleName];
             if (module) {
                 // module already loaded
                 resolve(module.exports);
             } else {
                 if (onRegisterTimeout === 0) {
-                    throw 'Plugin module ' + pluginName + ':' + moduleName + ' require failure. Async load mode disabled.';
+                    throw 'Plugin module ' + parsedModuleName.pluginName + ':' + parsedModuleName.moduleName + ' require failure. Async load mode disabled.';
                 }
 
                 // module not loaded. Load async, fulfilling promise once registered
-                exports.loadModule(pluginName, moduleName, onRegisterTimeout)
-                    .then(function(moduleExports) {
+                exports.loadModule(parsedModuleName.pluginName, parsedModuleName.moduleName, onRegisterTimeout)
+                    .then(function (moduleExports) {
                         resolve(moduleExports);
                     })
-                    .catch(function(error) {
+                    .catch(function (error) {
                         reject(error);
                     });
             }
@@ -228,6 +220,27 @@ exports.setRootURL = function(url) {
     }
     jenkinsCIGlobal.rootURL = url;
 };
+
+exports.parseModuleQName = function(moduleQName) {
+    var qNameTokens = moduleQName.split(":");
+
+    if (qNameTokens.length != 2) {
+        throw "'moduleQName' argument must contain 2 tokens i.e. '<pluginName>:<moduleName>'";
+    }
+
+    var pluginName = qNameTokens[0].trim();
+    var moduleName = qNameTokens[1].trim();
+
+    return {
+        pluginName: pluginName,
+        moduleName: moduleName
+    };
+}
+
+exports.getModule = function(pluginName, moduleName) {
+    var plugin = exports.getPlugin(pluginName);
+    return plugin[moduleName];
+}
 
 function getRootURL() {
     if (jenkinsCIGlobal && jenkinsCIGlobal.rootURL) {
