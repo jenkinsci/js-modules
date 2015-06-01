@@ -37,7 +37,7 @@ exports.getModule = function(moduleQName) {
         throw "Unable to perform synchronous 'getModule' for module '" + moduleQName + "'. This module is not pre-loaded. " +
             "The module needs to have been asynchronously pre-loaded via an outer call to 'requireModule' (or 'requireModules').";
     }
-    return module;
+    return module.exports;
 }
 
 /**
