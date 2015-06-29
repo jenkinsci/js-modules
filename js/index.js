@@ -101,23 +101,26 @@ exports.getModule = function(moduleQName) {
  * 
  * @param pluginName The Jenkins plugin in which the module resides.
  * @param moduleName The name of the module. 
- * @param moduleExports The CommonJS style module exports.
+ * @param module The CommonJS style module.
  * @param onError On error callback;
  */
-exports.export = function(pluginName, moduleName, moduleExports, onError) {
+exports.export = function(pluginName, moduleName, module, onError) {
     internal.onReady(function() {
         try {
             var plugin = internal.getPlugin(pluginName);
             if (plugin[moduleName]) {
                 throw "Jenkins plugin module '" + pluginName + ":" + moduleName + "' already registered.";
             }
-            var module = {
-                exports: moduleExports
-            };
+            
+            if (module.exports === undefined) {
+                module = {
+                    exports: module
+                };
+            }
             plugin[moduleName] = module;
             
             // Notify all that the module has been registered. See internal.loadModule also.
-            internal.notifyModuleExported(pluginName, moduleName, moduleExports);
+            internal.notifyModuleExported(pluginName, moduleName, module.exports);
         } catch (e) {
             console.error(e);
             if (onError) {
