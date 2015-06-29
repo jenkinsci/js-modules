@@ -7,18 +7,19 @@ var testUtil = require("./test-util");
 
 describe("index.js", function () {
 
-    it("- test requireModule/getModule and exportModule timeout", function (done) {
+    it("- test import/getModule and exportModule timeout", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
             try {
                 jenkins.getModule('pluginA:mathUtils');
             } catch (e) {
-                expect(e).toBe("Unable to perform synchronous 'getModule' for module 'pluginA:mathUtils'. This module is not pre-loaded. The module needs to have been asynchronously pre-loaded via an outer call to 'requireModule' (or 'requireModules').");
+                expect(e).toBe("Unable to perform synchronous 'getModule' for module 'pluginA:mathUtils'. This module is not pre-loaded. The module needs to have been asynchronously pre-loaded via an outer call to 'import' (or 'requireModules').");
             }
             
             // should fail because a exportModule never happens
-            jenkins.requireModule('pluginA:mathUtils', 100)
+            jenkins.setRegisterTimeout(100);
+            jenkins.import('pluginA:mathUtils')
                 .catch(function(error) {
                     expect(error.reason).toBe('timeout');
                     expect(error.detail).toBe("Please verify that the plugin 'pluginA' is installed, and that it registers a module named 'mathUtils'");
@@ -27,14 +28,14 @@ describe("index.js", function () {
         });
     });
 
-    it("- test requireModule/getModule and exportModule async successful", function (done) {
+    it("- test import/getModule and exportModule async successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
             // Require before the module is registered.
             // The require should "trigger" the loading of the module from the plugin.
             // Should pass because exportModule will happen before the timeout
-            jenkins.requireModule('pluginA:mathUtils', 2000).then(function(module) {
+            jenkins.import('pluginA:mathUtils', 2000).then(function(module) {
                 expect(module.add(2,2)).toBe(4);
                 done();               
             }); // timeout before Jasmine does
@@ -42,7 +43,7 @@ describe("index.js", function () {
             // Try requiring the module again immediately. Should be ignored i.e. a second
             // <script> element should NOT be added to the dom. See the test at the end
             // of this method.
-            jenkins.requireModule('pluginA:mathUtils', 1000).then(function(module) {
+            jenkins.import('pluginA:mathUtils', 1000).then(function(module) {
             });
             
             // Check that the <script> element was added to the <head>
@@ -78,7 +79,7 @@ describe("index.js", function () {
         });
     });
 
-    it("- test requireModule and exportModule sync successful", function (done) {
+    it("- test import and exportModule sync successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
 
@@ -90,7 +91,7 @@ describe("index.js", function () {
             });
             
             // Should pass immediately because exportModule has already happened.
-            jenkins.requireModule('pluginA:mathUtils', 0).then(function(module) {
+            jenkins.import('pluginA:mathUtils', 0).then(function(module) {
                 expect(module.add(2,2)).toBe(4);
                 done();               
             }); // disable async load mode

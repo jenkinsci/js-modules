@@ -44,17 +44,17 @@ We assume that the plugin bundle JavaScript is bundled using [Browserify](http:/
 loaded from `<jenkins>/plugin/<pluginName>/jsmodules/<moduleName>.js` e.g. `/jenkins/plugin/pluginA/jsmodules/mathUtils.js`.
 
 
-# Requiring/importing JavaScript modules
+# Importing JavaScript modules
 
 A JavaScript module in one plugin ("pluginB") can "require" a module from another plugin ("pluginA" see above)
-by calling `require('jenkins-modules').requireModule`.
+by calling `require('jenkins-modules').import`.
 
 
 ```javascript
 var mathUtil; // initialise once the module is loaded and registered 
 
 // The require is async (returning a Promise) because the 'pluginA:mathUtils' is loaded async.
-require('jenkins-modules').requireModule('pluginA:mathUtils')
+require('jenkins-modules').import('pluginA:mathUtils')
     .then(function(mathUtils) {
         // Module loaded ok
         mathUtil = module;
@@ -71,8 +71,8 @@ exports.magicFunc = function() {
 }
 ```
 
-If `require('jenkins-modules').requireModule` is called for a module that is not yet loaded, 
-`require('jenkins-modules').requireModule` will trigger the loading of that module from the plugin, hence the 
+If `require('jenkins-modules').import` is called for a module that is not yet loaded, 
+`require('jenkins-modules').import` will trigger the loading of that module from the plugin, hence the 
 async/promise nature i.e. you can't synchronously `get` a module.
 
 You can also perform a `requireModules` operation if you require loading of multiple modules. So if you require

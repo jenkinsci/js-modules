@@ -1,5 +1,6 @@
 var internal = require("./internal");
 var promise = require("./promise");
+var onRegisterTimeout;
 
 /**
  * Require a module.
@@ -10,19 +11,18 @@ var promise = require("./promise");
  *
  * @param moduleQName The module "qualified" name containing the module name prefixed with the Jenkins plugin name
  * separated by a colon i.e. "<pluginName>:<moduleName>" e.g. "jquery:jquery2".
- * @param onRegisterTimeout Millisecond duration before onRegister times out. Defaults to 10000 (10s) if not specified.
  *
  * @return A Promise, allowing async load of the module.
  */
-exports.requireModule = function(moduleQName, onRegisterTimeout) {
-    return internal.requireModule(moduleQName, onRegisterTimeout);
+exports.import = function(moduleQName) {
+    return internal.import(moduleQName, onRegisterTimeout);
 }
 
 /**
  * Synchronously "get" a module that it already loaded/registered.
  *
  * <p>
- * This function will throw an error if the module is not already loaded via an outer call to 'requireModule'
+ * This function will throw an error if the module is not already loaded via an outer call to 'import'
  * (or 'requireModules').
  *
  * @param moduleQName The module "qualified" name containing the module name prefixed with the Jenkins plugin name
@@ -35,7 +35,7 @@ exports.getModule = function(moduleQName) {
     var module = internal.getModule(parsedModuleName.pluginName, parsedModuleName.moduleName);    
     if (!module) {
         throw "Unable to perform synchronous 'getModule' for module '" + moduleQName + "'. This module is not pre-loaded. " +
-            "The module needs to have been asynchronously pre-loaded via an outer call to 'requireModule' (or 'requireModules').";
+            "The module needs to have been asynchronously pre-loaded via an outer call to 'import' (or 'requireModules').";
     }
     return module.exports;
 }
@@ -49,20 +49,16 @@ exports.getModule = function(moduleQName) {
  *
  * @param moduleQNames... A list of module "qualified" names, each containing the module name prefixed with the Jenkins plugin name
  * separated by a colon i.e. "<pluginName>:<moduleName>" e.g. "jquery:jquery2".
- * @param onRegisterTimeout Millisecond duration before onRegister times out. Defaults to 10000 (10s) if not specified.
  *
  * @return A Promise, allowing async load of all modules. The promise is only fulfilled when all modules are loaded.
  */
 exports.requireModules = function() {
     var moduleQNames = [];
-    var onRegisterTimeout;
     
     for (var i = 0; i < arguments.length; i++) {
         var argument = arguments[i];
         if (typeof argument === 'string') {
             moduleQNames.push(argument);
-        } else if (typeof argument === 'number') {
-            onRegisterTimeout = argument;
         }
     }
     
@@ -93,7 +89,7 @@ exports.requireModules = function() {
         // doRequire for each module
         for (var i = 0; i < moduleQNames.length; i++) {           
             function doRequire(moduleQName) {
-                var promise = internal.requireModule(moduleQName, onRegisterTimeout);
+                var promise = internal.import(moduleQName, onRegisterTimeout);
                 var fulfillment = {
                     promise: promise,
                     value: undefined
@@ -167,6 +163,15 @@ exports.addModuleCSSToPage = function(pluginName, moduleName, onError) {
         }
     });
 };
+
+/**
+ * Set the module registration timeout i.e. the length of time to wait for a module to load before failing.
+ *
+ * @param timeout Millisecond duration before onRegister times out. Defaults to 10000 (10s) if not specified.
+ */
+exports.setRegisterTimeout = function(timeout) {
+    onRegisterTimeout = timeout;
+}
 
 /**
  * Set the Jenkins root/base URL.

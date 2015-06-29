@@ -48,7 +48,7 @@ exports.getPlugin = function(pluginName) {
     return plugin;
 };
 
-exports.requireModule = function(moduleQName, onRegisterTimeout) {
+exports.import = function(moduleQName, onRegisterTimeout) {
     return promise.make(function (resolve, reject) {
         // getPlugin etc needs to access the 'window' global. We want to make sure that
         // exists before attempting to fulfill the require operation. It may not exists
