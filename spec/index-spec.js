@@ -14,7 +14,7 @@ describe("index.js", function () {
             try {
                 jenkins.getModule('pluginA:mathUtils');
             } catch (e) {
-                expect(e).toBe("Unable to perform synchronous 'getModule' for module 'pluginA:mathUtils'. This module is not pre-loaded. The module needs to have been asynchronously pre-loaded via an outer call to 'import' (or 'requireModules').");
+                expect(e).toBe("Unable to perform synchronous 'getModule' for module 'pluginA:mathUtils'. This module is not pre-loaded. The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
             }
             
             // should fail because a exportModule never happens
@@ -99,14 +99,15 @@ describe("index.js", function () {
         });
     });
 
-    it("- test requireModules and exportModule async successful", function (done) {
+    it("- test import and exportModule async successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
             // Require before the modules are registered.
             // The require should "trigger" the loading of the module from the plugin.
             // Should pass because exportModule will happen before the timeout
-            jenkins.requireModules('pluginA:mathUtils', 'pluginB:timeUtils', 2000)
+            jenkins.setRegisterTimeout(2000);
+            jenkins.import('pluginA:mathUtils', 'pluginB:timeUtils')
                 .then(function(mathUtils, timeUtils) {
                     // This function should only be called once both modules have been exported
                     expect(mathUtils.add(2,2)).toBe(4);
@@ -128,7 +129,7 @@ describe("index.js", function () {
         });
     });
 
-    it("- test requireModules and exportModule sync successful", function (done) {
+    it("- test import and exportModule sync successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
@@ -146,7 +147,8 @@ describe("index.js", function () {
             
             // Now require.
             // Should pass immediately because exportModule has already happened for each plugin.
-            jenkins.requireModules('pluginA:mathUtils', 'pluginB:timeUtils', 0) // disable async load mode
+            jenkins.setRegisterTimeout(0);
+            jenkins.import('pluginA:mathUtils', 'pluginB:timeUtils') // disable async load mode
                 .then(function(mathUtils, timeUtils) {
                     // This function should only be called once both modules have been exported
                     expect(mathUtils.add(2,2)).toBe(4);

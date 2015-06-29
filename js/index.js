@@ -3,45 +3,7 @@ var promise = require("./promise");
 var onRegisterTimeout;
 
 /**
- * Require a module.
- *
- * <p>
- * Responsible for triggering the async loading of the module from the plugin if
- * the module is not already loaded.
- *
- * @param moduleQName The module "qualified" name containing the module name prefixed with the Jenkins plugin name
- * separated by a colon i.e. "<pluginName>:<moduleName>" e.g. "jquery:jquery2".
- *
- * @return A Promise, allowing async load of the module.
- */
-exports.import = function(moduleQName) {
-    return internal.import(moduleQName, onRegisterTimeout);
-}
-
-/**
- * Synchronously "get" a module that it already loaded/registered.
- *
- * <p>
- * This function will throw an error if the module is not already loaded via an outer call to 'import'
- * (or 'requireModules').
- *
- * @param moduleQName The module "qualified" name containing the module name prefixed with the Jenkins plugin name
- * separated by a colon i.e. "<pluginName>:<moduleName>" e.g. "jquery:jquery2".
- *
- * @return The module.
- */
-exports.getModule = function(moduleQName) {
-    var parsedModuleName = internal.parseModuleQName(moduleQName);
-    var module = internal.getModule(parsedModuleName.pluginName, parsedModuleName.moduleName);    
-    if (!module) {
-        throw "Unable to perform synchronous 'getModule' for module '" + moduleQName + "'. This module is not pre-loaded. " +
-            "The module needs to have been asynchronously pre-loaded via an outer call to 'import' (or 'requireModules').";
-    }
-    return module.exports;
-}
-
-/**
- * Require a set of module.
+ * Import a set of modules.
  *
  * <p>
  * Responsible for triggering the async loading of modules from plugins if
@@ -52,9 +14,12 @@ exports.getModule = function(moduleQName) {
  *
  * @return A Promise, allowing async load of all modules. The promise is only fulfilled when all modules are loaded.
  */
-exports.requireModules = function() {
-    var moduleQNames = [];
+exports.import = function() {
+    if (arguments.length === 1) {
+        return internal.import(arguments[0], onRegisterTimeout);        
+    }
     
+    var moduleQNames = [];    
     for (var i = 0; i < arguments.length; i++) {
         var argument = arguments[i];
         if (typeof argument === 'string') {
@@ -81,7 +46,7 @@ exports.requireModules = function() {
                     }
                 }
                 // If we make it here, then we have fulfilled all individual promises, which 
-                // means we can now fulfill the top level requireModules promise.
+                // means we can now fulfill the top level import promise.
                 resolve(modules);
             }
         }        
@@ -108,6 +73,28 @@ exports.requireModules = function() {
         }
     }).applyArgsOnFulfill();    
 };
+
+/**
+ * Synchronously "get" a module that it already loaded/registered.
+ *
+ * <p>
+ * This function will throw an error if the module is not already loaded via an outer call to 'import'
+ * (or 'import').
+ *
+ * @param moduleQName The module "qualified" name containing the module name prefixed with the Jenkins plugin name
+ * separated by a colon i.e. "<pluginName>:<moduleName>" e.g. "jquery:jquery2".
+ *
+ * @return The module.
+ */
+exports.getModule = function(moduleQName) {
+    var parsedModuleName = internal.parseModuleQName(moduleQName);
+    var module = internal.getModule(parsedModuleName.pluginName, parsedModuleName.moduleName);    
+    if (!module) {
+        throw "Unable to perform synchronous 'getModule' for module '" + moduleQName + "'. This module is not pre-loaded. " +
+            "The module needs to have been asynchronously pre-loaded via an outer call to 'import'.";
+    }
+    return module.exports;
+}
 
 /**
  * Export a module.

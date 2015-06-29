@@ -75,25 +75,25 @@ If `require('jenkins-modules').import` is called for a module that is not yet lo
 `require('jenkins-modules').import` will trigger the loading of that module from the plugin, hence the 
 async/promise nature i.e. you can't synchronously `get` a module.
 
-You can also perform a `requireModules` operation if you require loading of multiple modules. So if you require
+You can also perform an `import` operation if you require loading of multiple modules. So if you require
 2 modules (e.g. "bootstrap3" and "jqueryui1") before proceeding, you can do the following:
 
 ```javascript
 // Again, the require is async (returning a Promise). The promise will not be fulfilled until both
 // "bootstrap3" and "jqueryui1" are loaded.
-require('jenkins-modules').requireModules('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
+require('jenkins-modules').import('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
     .then(function(bootstrap3, jqueryui1) {
         // Note how the loaded modules are passed as args in the 
-        // same order as they are specified in the call to requireModules.
+        // same order as they are specified in the call to import.
     });
 }
 ```
 
-You might also call `requireModules` in your "top level" script if you want to make sure your "application"
-only runs after all required modules are loaded. 
+You might call `import` wth multiple module names in your "top level" script if you want to make sure your "application"
+only runs after all required external modules are loaded. 
 
 ```javascript
-require('jenkins-modules').requireModules('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
+require('jenkins-modules').import('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
     .then(function() {
         // Now it's safe for my "application" to run...
     });
