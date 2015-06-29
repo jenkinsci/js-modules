@@ -27,7 +27,7 @@ to "export" one or more of those modules in the browser, allowing those modules 
 # Exporting JavaScript modules
 
 A Jenkins Plugin can "export" a JavaScript module (CommonJS style module) by calling
-`require('jenkins-modules').exportModule`, allowing other plugin bundles to `require` that module
+`require('jenkins-modules').export`, allowing other plugin bundles to `require` that module
 (see next section).
 
 
@@ -37,7 +37,7 @@ exports.add = function(lhs, rhs {
 }
 
 // export the module/bundle
-require('jenkins-modules').exportModule('pluginA', 'mathUtils', exports);
+require('jenkins-modules').export('pluginA', 'mathUtils', exports);
 ```
 
 We assume that the plugin bundle JavaScript is bundled using [Browserify](http://browserify.org/), and can be

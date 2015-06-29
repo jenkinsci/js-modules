@@ -104,7 +104,7 @@ exports.getModule = function(moduleQName) {
  * @param moduleExports The CommonJS style module exports.
  * @param onError On error callback;
  */
-exports.exportModule = function(pluginName, moduleName, moduleExports, onError) {
+exports.export = function(pluginName, moduleName, moduleExports, onError) {
     internal.onReady(function() {
         try {
             var plugin = internal.getPlugin(pluginName);

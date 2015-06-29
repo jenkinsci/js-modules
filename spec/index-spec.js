@@ -7,7 +7,7 @@ var testUtil = require("./test-util");
 
 describe("index.js", function () {
 
-    it("- test import/getModule and exportModule timeout", function (done) {
+    it("- test import/getModule and export timeout", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
@@ -17,7 +17,7 @@ describe("index.js", function () {
                 expect(e).toBe("Unable to perform synchronous 'getModule' for module 'pluginA:mathUtils'. This module is not pre-loaded. The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
             }
             
-            // should fail because a exportModule never happens
+            // should fail because a export never happens
             jenkins.setRegisterTimeout(100);
             jenkins.import('pluginA:mathUtils')
                 .catch(function(error) {
@@ -28,13 +28,13 @@ describe("index.js", function () {
         });
     });
 
-    it("- test import/getModule and exportModule async successful", function (done) {
+    it("- test import/getModule and export async successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
             // Require before the module is registered.
             // The require should "trigger" the loading of the module from the plugin.
-            // Should pass because exportModule will happen before the timeout
+            // Should pass because export will happen before the timeout
             jenkins.import('pluginA:mathUtils', 2000).then(function(module) {
                 expect(module.add(2,2)).toBe(4);
                 done();               
@@ -59,9 +59,9 @@ describe("index.js", function () {
             // Now mimic registering of the plugin module. In real Jenkins land, this would happen
             // async. The call to "require" would trigger the plugin js to be loaded
             // via adding of a <script> element to the page DOM. That plugin module
-            // is then responsible for calling 'exportModule', which should trigger
+            // is then responsible for calling 'export', which should trigger
             // the notify etc
-            jenkins.exportModule('pluginA', 'mathUtils', {
+            jenkins.export('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -79,18 +79,18 @@ describe("index.js", function () {
         });
     });
 
-    it("- test import and exportModule sync successful", function (done) {
+    it("- test import and export sync successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
 
             // Register the module before calling require. See above test too.
-            jenkins.exportModule('pluginA', 'mathUtils', {
+            jenkins.export('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
             });
             
-            // Should pass immediately because exportModule has already happened.
+            // Should pass immediately because export has already happened.
             jenkins.import('pluginA:mathUtils', 0).then(function(module) {
                 expect(module.add(2,2)).toBe(4);
                 done();               
@@ -99,13 +99,13 @@ describe("index.js", function () {
         });
     });
 
-    it("- test import and exportModule async successful", function (done) {
+    it("- test import and export async successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
             // Require before the modules are registered.
             // The require should "trigger" the loading of the module from the plugin.
-            // Should pass because exportModule will happen before the timeout
+            // Should pass because export will happen before the timeout
             jenkins.setRegisterTimeout(2000);
             jenkins.import('pluginA:mathUtils', 'pluginB:timeUtils')
                 .then(function(mathUtils, timeUtils) {
@@ -116,12 +116,12 @@ describe("index.js", function () {
                 }); // timeout before Jasmine does
             
             // Now mimic registering of the plugin modules.
-            jenkins.exportModule('pluginA', 'mathUtils', {
+            jenkins.export('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
             });
-            jenkins.exportModule('pluginB', 'timeUtils', {
+            jenkins.export('pluginB', 'timeUtils', {
                 now: function() {
                     return new Date(1000000000000);
                 }
@@ -129,24 +129,24 @@ describe("index.js", function () {
         });
     });
 
-    it("- test import and exportModule sync successful", function (done) {
+    it("- test import and export sync successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
             // Register the plugin modules before requiring.
-            jenkins.exportModule('pluginA', 'mathUtils', {
+            jenkins.export('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
             });
-            jenkins.exportModule('pluginB', 'timeUtils', {
+            jenkins.export('pluginB', 'timeUtils', {
                 now: function() {
                     return new Date(1000000000000);
                 }
             });
             
             // Now require.
-            // Should pass immediately because exportModule has already happened for each plugin.
+            // Should pass immediately because export has already happened for each plugin.
             jenkins.setRegisterTimeout(0);
             jenkins.import('pluginA:mathUtils', 'pluginB:timeUtils') // disable async load mode
                 .then(function(mathUtils, timeUtils) {
@@ -180,7 +180,7 @@ describe("index.js", function () {
     it("- test rootURL/resURL not defined", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
-            jenkins.exportModule('pluginA', 'mathUtils', {
+            jenkins.export('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -195,7 +195,7 @@ describe("index.js", function () {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             jenkins.setRootURL('/jenkins')
-            jenkins.exportModule('pluginA', 'mathUtils', {
+            jenkins.export('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
