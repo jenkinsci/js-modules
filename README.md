@@ -36,8 +36,8 @@ exports.add = function(lhs, rhs {
     return lhs + hrs;
 }
 
-// export the module/bundle
-require('jenkins-modules').export('pluginA', 'mathUtils', exports);
+// export the CommonJS module
+require('jenkins-modules').export('pluginA', 'mathUtils', module);
 ```
 
 We assume that the plugin bundle JavaScript is bundled using [Browserify](http://browserify.org/), and can be
