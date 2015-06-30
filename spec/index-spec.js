@@ -7,14 +7,14 @@ var testUtil = require("./test-util");
 
 describe("index.js", function () {
 
-    it("- test import/getModule and export timeout", function (done) {
+    it("- test import/require and export timeout", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
             try {
-                jenkins.getModule('pluginA:mathUtils');
+                jenkins.require('pluginA:mathUtils');
             } catch (e) {
-                expect(e).toBe("Unable to perform synchronous 'getModule' for module 'pluginA:mathUtils'. This module is not pre-loaded. The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
+                expect(e).toBe("Unable to perform synchronous 'require' for module 'pluginA:mathUtils'. This module is not pre-loaded. The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
             }
             
             // should fail because a export never happens
@@ -28,7 +28,7 @@ describe("index.js", function () {
         });
     });
 
-    it("- test import/getModule and export async successful", function (done) {
+    it("- test import/require and export async successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             
@@ -74,7 +74,7 @@ describe("index.js", function () {
             expect(scriptEl).toBe(null);
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jenkins.getModule('pluginA:mathUtils');
+            var mathUtils = jenkins.require('pluginA:mathUtils');
             expect(mathUtils).toBeDefined();
         });
     });

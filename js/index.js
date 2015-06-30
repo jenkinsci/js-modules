@@ -3,7 +3,7 @@ var promise = require("./promise");
 var onRegisterTimeout;
 
 /**
- * Import a set of modules.
+ * Asynchronously import/require a set of modules.
  *
  * <p>
  * Responsible for triggering the async loading of modules from plugins if
@@ -75,7 +75,7 @@ exports.import = function() {
 };
 
 /**
- * Synchronously "get" a module that it already loaded/registered.
+ * Synchronously "require" a module that it already loaded/registered.
  *
  * <p>
  * This function will throw an error if the module is not already loaded via an outer call to 'import'
@@ -86,11 +86,11 @@ exports.import = function() {
  *
  * @return The module.
  */
-exports.getModule = function(moduleQName) {
+exports.require = function(moduleQName) {
     var parsedModuleName = internal.parseModuleQName(moduleQName);
     var module = internal.getModule(parsedModuleName.pluginName, parsedModuleName.moduleName);    
     if (!module) {
-        throw "Unable to perform synchronous 'getModule' for module '" + moduleQName + "'. This module is not pre-loaded. " +
+        throw "Unable to perform synchronous 'require' for module '" + moduleQName + "'. This module is not pre-loaded. " +
             "The module needs to have been asynchronously pre-loaded via an outer call to 'import'.";
     }
     return module.exports;
