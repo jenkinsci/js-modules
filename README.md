@@ -38,6 +38,12 @@ That means each bundle needs to include everything it needs, including jQuery an
 (or Jenkins core) that are building self contained CommonJS style JavaScript modules (using [Browserify](http://browserify.org/) if they want)
 to "export" one or more of those modules in the browser, allowing those modules to be "required" across bundle boundaries.
 
+So, this module is all about loading module "bundles" (apps) and providing a means for them to load their dependencies (jQuery etc) and wiring them together. The idea is that
+the app modules are all loaded cleanly through the nodejs style `require` semantics (because they are all loaded in a single bundle), while "external" dependencies (jQuery etc) 
+are loaded asynchronously (allowing them to be loaded on demand etc). The assumption here is that the number of external module dependencies should be relatively small in comparison
+to the number of modules in the app itself. In fact, this module lets us async load the external modules upfront in the app's "main" module and then sync require those modules
+from down in the app sub-modules.
+
 # `export` JavaScript modules
 
 A Jenkins Plugin can "export" a JavaScript module (CommonJS style module) by calling
