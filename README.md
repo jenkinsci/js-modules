@@ -145,14 +145,16 @@ external modules which would typically be "framework" type modules such as jQuer
 on a single request.
 
 So lets assume that sub modules (`sub-mod-1.1.js` etc) depend on jQuery, Bootstrap etc. Instead of defining async `import`s
-in all modules, a cleaner approach is to `import` all external modules from the top level module (`main-mod.js`) and then to use
-a synchronous `require` from down inside the sub modules e.g.
+in all modules, a cleaner approach is to `import` all external modules from the top level module (`main-mod.js` - remember the 
+assumption that there are "relatively" few external module dependencies Vs the number of internal app modules) and then to 
+use a synchronous `require` from down inside the sub modules e.g.
 
 _main-mod.js_
 
-```
+```javascript
 // load all external deps before we "start" the app
-require('jenkins-modules').import('jquery-detached:jquery2', 'bootstrap:bootstrap3')
+require('jenkins-modules')
+    .import('jquery-detached:jquery2', 'bootstrap:bootstrap3')
     .then(function() {
         // run the app
         
@@ -162,11 +164,11 @@ require('jenkins-modules').import('jquery-detached:jquery2', 'bootstrap:bootstra
 ```
 
 _sub-mod-1.1.js_
-```
+```javascript
 var jenkins = require('jenkins-modules');
 var jquery = jenkins.require('jquery-detached:jquery2');
 
 // etc ...
 ```
 
-So it's perfectly safe for `sub-mod-1.1.js` to synchronously load it's external modules (jenkins.require('jquery-detached:jquery2')``).
+So it's perfectly safe for `sub-mod-1.1.js` to synchronously load it's external modules (`jenkins.require('jquery-detached:jquery2')`).
