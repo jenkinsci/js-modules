@@ -57,7 +57,7 @@ exports.add = function(lhs, rhs {
     return lhs + hrs;
 }
 
-// export the CommonJS module
+ // export the CommonJS module
 require('jenkins-modules').export('pluginA', 'mathUtils', module);
 ```
 
@@ -127,8 +127,8 @@ async callbacks etc. For that reason, `jenkins-modules` supports a `require` fun
 to synchronously `require` these external modules ala how CommonJS `require` can be used to `require` a
 local module (local to the application bundle).
 
-As stated later, one assumption is that the application has a top level "main" JavaScript file from there all other
-modules in the application are loaded e.g.
+As stated earlier, one assumption is that the application has a top level "main" JavaScript file from where all other
+modules in the application are loaded, either directly or indirectly e.g.
  
 ```
 -- main-mod.js
@@ -140,20 +140,17 @@ modules in the application are loaded e.g.
       \- sub-mod-2.2.js
 ```
 
-Another assumption was that "apps" will typically have more internal modules than they will have dependencies on
-external modules which would typically be "framework" type modules such as jQuery, Bootstrap etc.
-[Browserify](http://browserify.org/) is used to assemble all app modules (e.g. above) into a single bundle that can be loaded
-on a single request.
+Another assumption was that "apps" will typically have more internal modules than they have dependencies on
+external modules (which would typically be "framework" type modules such as jQuery, Bootstrap etc).
 
-So lets assume that sub modules (`sub-mod-1.1.js` etc) depend on jQuery, Bootstrap etc. Instead of defining async `import`s
-in all modules, a cleaner approach is to `import` all external modules from the top level module (`main-mod.js` - remember the 
-assumption that there are "relatively" few external module dependencies Vs the number of internal app modules) and then to 
-use a synchronous `require` from down inside the sub modules e.g.
+Using [Browserify](http://browserify.org/), we can assemble all app modules (e.g. above) into a single bundle that can be loaded
+in a single request. So lets assume that sub modules (`sub-mod-1.1.js` etc) depend on jQuery, Bootstrap etc. Instead of defining async `import`s
+in all modules, a cleaner approach is to `import` all external modules from the top level module (`main-mod.js`) e.g.
 
 _main-mod.js_
 
 ```javascript
-// load all external deps before we "start" the app
+ // load all external deps before we "start" the app
 require('jenkins-modules')
     .import('jquery-detached:jquery2', 'bootstrap:bootstrap3')
     .then(function() {
@@ -164,6 +161,8 @@ require('jenkins-modules')
     });
 ```
 
+So, it's perfectly safe for `sub-mod-1.1.js` to synchronously `require` it's external modules e.g. `jenkins.require('jquery-detached:jquery2')`:
+
 _sub-mod-1.1.js_
 ```javascript
 var jenkins = require('jenkins-modules');
@@ -172,4 +171,7 @@ var jquery = jenkins.require('jquery-detached:jquery2');
 // etc ...
 ```
 
-So it's perfectly safe for `sub-mod-1.1.js` to synchronously load it's external modules (`jenkins.require('jquery-detached:jquery2')`).
+Remember the assumption that there are "relatively" few external module dependencies Vs the number of internal app modules. Based on that and the
+fact that all internal modules can be loaded synchronously using `require` because they are are all in a single bundle (thanks to Browserify), we
+should be able to keep the top level async loading (in `main-mod.js`) relatively clean because we're able to limit it to the framework modules
+(again, thanks to Browserify).
