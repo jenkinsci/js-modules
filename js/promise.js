@@ -62,8 +62,8 @@ APromise.prototype.reject = function (reason) {
     if (this.whenRejected) {
         this.whenRejected(reason);
     }
-    // redefine "catch" to call immediately
-    this.catch = function(whenRejected) {
+    // redefine "onRejected" to call immediately
+    this.onRejected = function(whenRejected) {
         if (whenRejected) {
             whenRejected(reason);
         }
@@ -79,7 +79,7 @@ APromise.prototype.onFulfilled = function(whenFulfilled) {
     return this;
 };
 
-APromise.prototype.catch = function(whenRejected) {        
+APromise.prototype.onRejected = function(whenRejected) {        
     if (whenRejected) {
         this.whenRejected = whenRejected;
     }

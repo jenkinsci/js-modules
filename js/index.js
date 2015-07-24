@@ -65,7 +65,7 @@ exports.import = function() {
                         fulfillment.value = value;
                         onFulfillment();
                     })
-                    .catch(function(error) {
+                    .onRejected(function(error) {
                         reject(error);
                     });
             }

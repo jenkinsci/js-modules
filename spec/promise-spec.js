@@ -48,7 +48,7 @@ describe("promise.js", function () {
         }, 1000);
     });
 
-    // promised is rejected after the "catch" func is added
+    // promised is rejected after the "onRejected" func is added
     it("- promise reject after", function (done) {
         
         var aPromise = promise.make(function(resolve, reject) {
@@ -62,13 +62,13 @@ describe("promise.js", function () {
         });
         
         aPromise
-            .catch(function(error) {
+            .onRejected(function(error) {
                 expect(error).toBe('failed');
                 aPromise.catchCalled = true;
             });
     });
 
-    // promised is rejected before the "catch" func is added
+    // promised is rejected before the "onRejected" func is added
     it("- promise reject before", function (done) {
         
         var aPromise = promise.make(function(resolve, reject) {
@@ -81,7 +81,7 @@ describe("promise.js", function () {
             // Should already be rejected
             expect(aPromise.state).toBe('REJECTED');                
             aPromise
-                .catch(function(error) {
+                .onRejected(function(error) {
                     expect(error).toBe('failed');
                     done();
                 });

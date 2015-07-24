@@ -70,7 +70,7 @@ exports.import = function(moduleQName, onRegisterTimeout) {
                     .onFulfilled(function (moduleExports) {
                         resolve(moduleExports);
                     })
-                    .catch(function (error) {
+                    .onRejected(function (error) {
                         reject(error);
                     });
             }

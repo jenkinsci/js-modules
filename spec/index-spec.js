@@ -20,7 +20,7 @@ describe("index.js", function () {
             // should fail because a export never happens
             jenkins.setRegisterTimeout(100);
             jenkins.import('pluginA:mathUtils')
-                .catch(function(error) {
+                .onRejected(function(error) {
                     expect(error.reason).toBe('timeout');
                     expect(error.detail).toBe("Please verify that the plugin 'pluginA' is installed, and that it registers a module named 'mathUtils'");
                     done();               
