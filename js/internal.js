@@ -67,7 +67,7 @@ exports.import = function(moduleQName, onRegisterTimeout) {
 
                 // module not loaded. Load async, fulfilling promise once registered
                 exports.loadModule(parsedModuleName.pluginName, parsedModuleName.moduleName, onRegisterTimeout)
-                    .then(function (moduleExports) {
+                    .onFulfilled(function (moduleExports) {
                         resolve(moduleExports);
                     })
                     .catch(function (error) {

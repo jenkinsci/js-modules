@@ -61,7 +61,7 @@ exports.import = function() {
                 };
                 fulfillments.push(fulfillment);
                 promise
-                    .then(function(value) {
+                    .onFulfilled(function(value) {
                         fulfillment.value = value;
                         onFulfillment();
                     })

@@ -7,7 +7,7 @@ var promise = require("../js/promise");
 
 describe("promise.js", function () {
 
-    // promised is resolved after the "then" func is added
+    // promised is resolved after the "onFulfilled" func is added
     it("- promise resolve after", function (done) {
         
         var aPromise = promise.make(function(resolve, reject) {
@@ -21,14 +21,14 @@ describe("promise.js", function () {
         });
         
         aPromise
-            .then(function(result) {
+            .onFulfilled(function(result) {
                 expect(aPromise.state).toBe('FULFILLED');                
                 expect(result).toBe('success');
                 aPromise.thenCalled = true;
             });
     });
 
-    // promised is resolved before the "then" func is added
+    // promised is resolved before the "onFulfilled" func is added
     it("- promise resolve before", function (done) {
         
         var aPromise = promise.make(function(resolve, reject) {
@@ -41,7 +41,7 @@ describe("promise.js", function () {
             // Should already be fulfilled
             expect(aPromise.state).toBe('FULFILLED');                
             aPromise
-                .then(function(result) {
+                .onFulfilled(function(result) {
                     expect(result).toBe('success');
                     done();
                 });

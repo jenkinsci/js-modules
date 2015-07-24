@@ -35,7 +35,7 @@ describe("index.js", function () {
             // Require before the module is registered.
             // The require should "trigger" the loading of the module from the plugin.
             // Should pass because export will happen before the timeout
-            jenkins.import('pluginA:mathUtils', 2000).then(function(module) {
+            jenkins.import('pluginA:mathUtils', 2000).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
                 done();               
             }); // timeout before Jasmine does
@@ -43,7 +43,7 @@ describe("index.js", function () {
             // Try requiring the module again immediately. Should be ignored i.e. a second
             // <script> element should NOT be added to the dom. See the test at the end
             // of this method.
-            jenkins.import('pluginA:mathUtils', 1000).then(function(module) {
+            jenkins.import('pluginA:mathUtils', 1000).onFulfilled(function(module) {
             });
             
             // Check that the <script> element was added to the <head>
@@ -91,7 +91,7 @@ describe("index.js", function () {
             });
             
             // Should pass immediately because export has already happened.
-            jenkins.import('pluginA:mathUtils', 0).then(function(module) {
+            jenkins.import('pluginA:mathUtils', 0).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
                 done();               
             }); // disable async load mode
@@ -108,7 +108,7 @@ describe("index.js", function () {
             // Should pass because export will happen before the timeout
             jenkins.setRegisterTimeout(2000);
             jenkins.import('pluginA:mathUtils', 'pluginB:timeUtils')
-                .then(function(mathUtils, timeUtils) {
+                .onFulfilled(function(mathUtils, timeUtils) {
                     // This function should only be called once both modules have been exported
                     expect(mathUtils.add(2,2)).toBe(4);
                     expect(timeUtils.now().getTime()).toBe(1000000000000);
@@ -149,7 +149,7 @@ describe("index.js", function () {
             // Should pass immediately because export has already happened for each plugin.
             jenkins.setRegisterTimeout(0);
             jenkins.import('pluginA:mathUtils', 'pluginB:timeUtils') // disable async load mode
-                .then(function(mathUtils, timeUtils) {
+                .onFulfilled(function(mathUtils, timeUtils) {
                     // This function should only be called once both modules have been exported
                     expect(mathUtils.add(2,2)).toBe(4);
                     expect(timeUtils.now().getTime()).toBe(1000000000000);

@@ -48,8 +48,8 @@ APromise.prototype.resolve = function (result) {
     if (this.whenFulfilled) {
         doFulfill(this.whenFulfilled, result);
     }
-    // redefine "then" to call immediately
-    this.then = function (whenFulfilled) {
+    // redefine "onFulfilled" to call immediately
+    this.onFulfilled = function (whenFulfilled) {
         if (whenFulfilled) {
             doFulfill(whenFulfilled, result);
         }
@@ -71,7 +71,7 @@ APromise.prototype.reject = function (reason) {
     }
 };
 
-APromise.prototype.then = function(whenFulfilled) {
+APromise.prototype.onFulfilled = function(whenFulfilled) {
     if (!whenFulfilled) {
         throw 'Must provide an "whenFulfilled" callback.';
     }
