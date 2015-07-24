@@ -75,11 +75,11 @@ var mathUtil; // initialise once the module is loaded and registered
 
 // The require is async (returning a Promise) because the 'pluginA:mathUtils' is loaded async.
 require('jenkins-modules').import('pluginA:mathUtils')
-    .then(function(mathUtils) {
+    .onFulfilled(function(mathUtils) {
         // Module loaded ok
         mathUtil = module;
     })
-    .catch(function(error) {
+    .onRejected(function(error) {
         // Module didn't load for some reason e.g. a timeout
         alert(error.detail);
     });
@@ -102,7 +102,7 @@ You can also perform an `import` operation if you require loading of multiple mo
 // Again, the require is async (returning a Promise). The promise will not be fulfilled until both
 // "bootstrap3" and "jqueryui1" are loaded.
 require('jenkins-modules').import('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
-    .then(function(bootstrap3, jqueryui1) {
+    .onFulfilled(function(bootstrap3, jqueryui1) {
         // Note how the loaded modules are passed as args in the 
         // same order as they are specified in the call to import.
     });
@@ -114,7 +114,7 @@ only runs after all required external modules are loaded.
 
 ```javascript
 require('jenkins-modules').import('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
-    .then(function() {
+    .onFulfilled(function() {
         // Now it's safe for my "application" to run...
     });
 }
@@ -153,7 +153,7 @@ _main-mod.js_
  // load all external deps before we "start" the app
 require('jenkins-modules')
     .import('jquery-detached:jquery2', 'bootstrap:bootstrap3')
-    .then(function() {
+    .onFulfilled(function() {
         // run the app
         
         // and some time later....
