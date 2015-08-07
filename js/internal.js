@@ -55,7 +55,7 @@ exports.import = function(moduleQName, onRegisterTimeout) {
         // immediately in a test env.
         exports.onReady(function() {
             var parsedModuleName = exports.parseModuleQName(moduleQName);
-            var module = exports.getModule(parsedModuleName.pluginName, parsedModuleName.moduleName);
+            var module = exports.getModule(parsedModuleName);
             
             if (module) {
                 // module already loaded
@@ -66,7 +66,7 @@ exports.import = function(moduleQName, onRegisterTimeout) {
                 }
 
                 // module not loaded. Load async, fulfilling promise once registered
-                exports.loadModule(parsedModuleName.pluginName, parsedModuleName.moduleName, onRegisterTimeout)
+                exports.loadModule(parsedModuleName, onRegisterTimeout)
                     .onFulfilled(function (moduleExports) {
                         resolve(moduleExports);
                     })
@@ -78,13 +78,13 @@ exports.import = function(moduleQName, onRegisterTimeout) {
     });    
 }
 
-exports.loadModule = function(pluginName, moduleName, onRegisterTimeout) {
-    var plugin = exports.getPlugin(pluginName);
+exports.loadModule = function(moduleSpec, onRegisterTimeout) {
+    var plugin = exports.getPlugin(moduleSpec.pluginName);
 
-    var module = plugin[moduleName];
+    var module = plugin[moduleSpec.moduleName];
     if (module) {
         // Module already loaded. This prob shouldn't happen.
-        console.log("Unexpected call to 'loadModule' for a module (" + moduleName + ") that's already loaded.");
+        console.log("Unexpected call to 'loadModule' for a module (" + moduleSpec.moduleName + ") that's already loaded.");
         return promise.make(function (resolve) {
             resolve(module.exports);
         });
@@ -120,18 +120,18 @@ exports.loadModule = function(pluginName, moduleName, onRegisterTimeout) {
         });
     }
     
-    var loadingModule = getLoadingModule(plugin, moduleName);
+    var loadingModule = getLoadingModule(plugin, moduleSpec.moduleName);
     if (!loadingModule.waitList) {
         loadingModule.waitList = [];
     }
-    loadingModule.pluginName = pluginName; 
-    loadingModule.moduleName = moduleName;
+    loadingModule.pluginName = moduleSpec.pluginName; 
+    loadingModule.moduleName = moduleSpec.moduleName;
     loadingModule.loaded = false;
 
     try {
         return waitForRegistration(loadingModule, onRegisterTimeout);
     } finally {
-        var moduleId = exports.toPluginModuleId(pluginName, moduleName) + ':js';
+        var moduleId = exports.toPluginModuleId(moduleSpec.pluginName, moduleSpec.moduleName) + ':js';
         var document = windowHandle.getWindow().document;
         var script = document.getElementById(moduleId);
 
@@ -142,18 +142,16 @@ exports.loadModule = function(pluginName, moduleName, onRegisterTimeout) {
             script = createElement('script');
             script.setAttribute('id', moduleId);
             script.setAttribute('type', 'text/javascript');
-            script.setAttribute('src', exports.toPluginModuleSrc(pluginName, moduleName));
+            script.setAttribute('src', exports.toPluginModuleSrc(moduleSpec.pluginName, moduleSpec.moduleName));
             script.setAttribute('async', 'true');
             docHead.appendChild(script);
         }
     }
 };
 
-exports.notifyModuleExported = function(pluginName, moduleName, moduleExports) {
-    var plugin = exports.getPlugin(pluginName);
-
-    var module = plugin[moduleName];
-    var loadingModule = getLoadingModule(plugin, moduleName);
+exports.notifyModuleExported = function(moduleSpec, moduleExports) {
+    var plugin = exports.getPlugin(moduleSpec.pluginName);
+    var loadingModule = getLoadingModule(plugin, moduleSpec.moduleName);
     
     loadingModule.loaded = true;
     if (loadingModule.waitList) {
@@ -183,6 +181,14 @@ exports.addModuleCSSToPage = function(pluginName, moduleName) {
     cssEl.setAttribute('rel', 'stylesheet');
     cssEl.setAttribute('href', cssPath);
     docHead.appendChild(cssEl);
+};
+
+exports.getGlobalModules = function() {
+    var jenkinsCIGlobal = exports.getJenkins();
+    if (!jenkinsCIGlobal.globals) {
+        jenkinsCIGlobal.globals = {};
+    }
+    return jenkinsCIGlobal.globals;
 };
 
 exports.getPlugins = function() {
@@ -222,24 +228,29 @@ exports.setRootURL = function(url) {
 };
 
 exports.parseModuleQName = function(moduleQName) {
-    var qNameTokens = moduleQName.split(":");
-
-    if (qNameTokens.length != 2) {
-        throw "'moduleQName' argument must contain 2 tokens i.e. '<pluginName>:<moduleName>'";
+    var qNameTokens = moduleQName.split(":");    
+    if (qNameTokens.length === 2) {
+        return {
+            pluginName: qNameTokens[0].trim(),
+            moduleName: qNameTokens[1].trim()
+        };
+    } else {
+        // The module/bundle is not in a plugin and doesn't
+        // need to be loaded i.e. it will load itself and export.
+        return {
+            moduleName: qNameTokens[0].trim()
+        };
     }
-
-    var pluginName = qNameTokens[0].trim();
-    var moduleName = qNameTokens[1].trim();
-
-    return {
-        pluginName: pluginName,
-        moduleName: moduleName
-    };
 }
 
-exports.getModule = function(pluginName, moduleName) {
-    var plugin = exports.getPlugin(pluginName);
-    return plugin[moduleName];
+exports.getModule = function(moduleSpec) {
+    if (moduleSpec.pluginName) {
+        var plugin = exports.getPlugin(moduleSpec.pluginName);
+        return plugin[moduleSpec.moduleName];
+    } else {
+        var globals = exports.getGlobalModules();
+        return globals[moduleSpec.moduleName];
+    }
 }
 
 function getRootURL() {

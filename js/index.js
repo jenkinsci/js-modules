@@ -88,7 +88,7 @@ exports.import = function() {
  */
 exports.require = function(moduleQName) {
     var parsedModuleName = internal.parseModuleQName(moduleQName);
-    var module = internal.getModule(parsedModuleName.pluginName, parsedModuleName.moduleName);    
+    var module = internal.getModule(parsedModuleName);    
     if (!module) {
         throw "Unable to perform synchronous 'require' for module '" + moduleQName + "'. This module is not pre-loaded. " +
             "The module needs to have been asynchronously pre-loaded via an outer call to 'import'.";
@@ -120,7 +120,7 @@ exports.export = function(pluginName, moduleName, module, onError) {
             plugin[moduleName] = module;
             
             // Notify all that the module has been registered. See internal.loadModule also.
-            internal.notifyModuleExported(pluginName, moduleName, module.exports);
+            internal.notifyModuleExported({pluginName: pluginName, moduleName: moduleName}, module.exports);
         } catch (e) {
             console.error(e);
             if (onError) {
