@@ -102,6 +102,7 @@ describe("index.js", function () {
     it("- test import and export async successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
+            var internal = require("../js/internal");
             
             // Require before the modules are registered.
             // The require should "trigger" the loading of the module from the plugin.
@@ -112,6 +113,11 @@ describe("index.js", function () {
                     // This function should only be called once both modules have been exported
                     expect(mathUtils.add(2,2)).toBe(4);
                     expect(timeUtils.now().getTime()).toBe(1000000000000);
+                    
+                    // The mathUtils module should be in the 'global' namespace
+                    var moduleNamespace = internal.getModuleNamespace({pluginName: 'pluginA', moduleName: 'mathUtils'});                    
+                    expect(moduleNamespace.globalNS).toBe(false);
+
                     done();               
                 }); // timeout before Jasmine does
             
@@ -157,6 +163,42 @@ describe("index.js", function () {
                 }); // timeout before Jasmine does
         });
     });
+    
+    it("- test import and export global namespace async successful", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var internal = require("../js/internal");
+            
+            // Require before the modules are registered.
+            // The require should "trigger" the loading of the module.
+            // Should pass because export will happen before the timeout
+            jenkins.setRegisterTimeout(2000);
+            jenkins.import('mathUtils', 'timeUtils')
+                .onFulfilled(function(mathUtils, timeUtils) {
+                    // This function should only be called once both modules have been exported
+                    expect(mathUtils.add(2,2)).toBe(4);
+                    expect(timeUtils.now().getTime()).toBe(1000000000000);
+                    
+                    // The mathUtils module should be in the 'global' namespace
+                    var moduleNamespace = internal.getModuleNamespace({moduleName: 'mathUtils'});                    
+                    expect(moduleNamespace.globalNS).toBe(true);
+                    
+                    done();               
+                }); // timeout before Jasmine does
+            
+            // Now mimic registering of the global modules (plugin name undefined).
+            jenkins.export(undefined, 'mathUtils', {
+                add: function(lhs, rhs) {
+                    return lhs + rhs;
+                }
+            });
+            jenkins.export(undefined, 'timeUtils', {
+                now: function() {
+                    return new Date(1000000000000);
+                }
+            });
+        });
+    });    
 
     it("- test addModuleCSSToPage", function (done) {
         testUtil.onJenkinsPage(function() {

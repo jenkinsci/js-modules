@@ -48,12 +48,14 @@ exports.getModuleNamespace = function(moduleSpec) {
 
 exports.getPlugin = function(pluginName) {
     var plugins = exports.getPlugins();
-    var plugin = plugins[pluginName];
-    if (!plugin) {
-        plugin = {};
-        plugins[pluginName] = plugin;
+    var pluginNamespace = plugins[pluginName];
+    if (!pluginNamespace) {
+        pluginNamespace = {
+            globalNS: false            
+        };
+        plugins[pluginName] = pluginNamespace;
     }
-    return plugin;
+    return pluginNamespace;
 };
 
 exports.import = function(moduleQName, onRegisterTimeout) {
@@ -207,7 +209,9 @@ exports.addModuleCSSToPage = function(pluginName, moduleName) {
 exports.getGlobalModules = function() {
     var jenkinsCIGlobal = exports.getJenkins();
     if (!jenkinsCIGlobal.globals) {
-        jenkinsCIGlobal.globals = {};
+        jenkinsCIGlobal.globals = {
+            globalNS: true
+        };
     }
     return jenkinsCIGlobal.globals;
 };
