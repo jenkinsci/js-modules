@@ -218,7 +218,7 @@ describe("index.js", function () {
             // The require should "trigger" the loading of the module.
             // Should pass because export will happen before the timeout
             jenkins.setRegisterTimeout(2000);
-            // 2 modules, the first is in the global namespace and the send is in a 
+            // 2 modules, the first is in the global namespace and the second is in a 
             // plugin namespace ('pluginB')
             jenkins.import('mathUtils', 'pluginB:timeUtils')
                 .onFulfilled(function(mathUtils, timeUtils) {
