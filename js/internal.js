@@ -38,6 +38,14 @@ exports.getJenkins = function() {
     return jenkinsCIGlobal;
 };
 
+exports.getModuleNamespace = function(moduleSpec) {
+    if (moduleSpec.pluginName) {
+        return exports.getPlugin(moduleSpec.pluginName);
+    } else {
+        return exports.getGlobalModules();
+    }
+}
+
 exports.getPlugin = function(pluginName) {
     var plugins = exports.getPlugins();
     var plugin = plugins[pluginName];
@@ -83,17 +91,8 @@ exports.import = function(moduleQName, onRegisterTimeout) {
 }
 
 exports.loadModule = function(moduleSpec, onRegisterTimeout) {
-    var isPluginModule = (moduleSpec.pluginName !== undefined);
-    var moduleNamespace;
-    var module;
-    
-    if (isPluginModule) {
-        moduleNamespace = exports.getPlugin(moduleSpec.pluginName);
-        module = moduleNamespace[moduleSpec.moduleName];
-    } else {
-        moduleNamespace = exports.getGlobalModules();
-        module = moduleNamespace[moduleSpec.moduleName];
-    }
+    var moduleNamespace = exports.getModuleNamespace(moduleSpec);
+    var module = moduleNamespace[moduleSpec.moduleName];
     
     if (module) {
         // Module already loaded. This prob shouldn't happen.
@@ -151,7 +150,7 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
     } finally {
         // We can auto/dynamic load modules in a plugin namespace. Global namespace modules
         // need to make sure they load themselves (via an adjunct, or whatever).
-        if (isPluginModule) {
+        if (moduleSpec.pluginName) {
             var moduleId = exports.toPluginModuleId(moduleSpec.pluginName, moduleSpec.moduleName) + ':js';
             var document = windowHandle.getWindow().document;
             var script = document.getElementById(moduleId);
