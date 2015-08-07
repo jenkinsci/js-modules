@@ -199,7 +199,38 @@ describe("index.js", function () {
             });
         });
     });    
-
+    
+    it("- test import and export global/plugin namespace async without module", function (done) {
+        
+        // This test is simply testing that we can async wait for a module that doesn't export
+        // anything to load. Sounds strange, but we actually need something like this in Jenkins.
+        // E.g. to support backward compatibility, we want adjuncts to wait for the 
+        // 'jenkins-backcompat' bundle to load before they execute. The 'jenkins-backcompat' bundle
+        // may or may not export functions (not always relevant), but it does register stuff in the
+        // global/window JS namespace that legacy adjuncts need, so we need to make sure it is done
+        // loading before we let the adjunct execute.
+        
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var internal = require("../js/internal");
+            
+            // Require before the modules are registered.
+            // The require should "trigger" the loading of the module.
+            // Should pass because export will happen before the timeout
+            jenkins.setRegisterTimeout(2000);
+            jenkins.import('mathUtils', 'pluginB:timeUtils')
+                .onFulfilled(function(mathUtils, timeUtils) {
+                    expect(mathUtils).toBeDefined();
+                    expect(timeUtils).toBeDefined();
+                    done();               
+                }); // timeout before Jasmine does
+            
+            // Now mimic registering of the modules, but without actual "modules" i.e. 3rd param not defined.
+            jenkins.export(undefined, 'mathUtils');
+            jenkins.export('pluginB', 'timeUtils');
+        });
+    });   
+    
     it("- test addModuleCSSToPage", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
