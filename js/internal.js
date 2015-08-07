@@ -54,19 +54,23 @@ exports.import = function(moduleQName, onRegisterTimeout) {
         // exists before attempting to fulfill the require operation. It may not exists
         // immediately in a test env.
         exports.onReady(function() {
-            var parsedModuleName = exports.parseModuleQName(moduleQName);
-            var module = exports.getModule(parsedModuleName);
+            var moduleSpec = exports.parseModuleQName(moduleQName);
+            var module = exports.getModule(moduleSpec);
             
             if (module) {
                 // module already loaded
                 resolve(module.exports);
             } else {
                 if (onRegisterTimeout === 0) {
-                    throw 'Plugin module ' + parsedModuleName.pluginName + ':' + parsedModuleName.moduleName + ' require failure. Async load mode disabled.';
+                    if (moduleSpec.pluginName) {
+                        throw 'Plugin module ' + moduleSpec.pluginName + ':' + moduleSpec.moduleName + ' require failure. Async load mode disabled.';
+                    } else {
+                        throw 'Global module ' + moduleSpec.moduleName + ' require failure. Async load mode disabled.';
+                    }
                 }
 
                 // module not loaded. Load async, fulfilling promise once registered
-                exports.loadModule(parsedModuleName, onRegisterTimeout)
+                exports.loadModule(moduleSpec, onRegisterTimeout)
                     .onFulfilled(function (moduleExports) {
                         resolve(moduleExports);
                     })
@@ -79,9 +83,18 @@ exports.import = function(moduleQName, onRegisterTimeout) {
 }
 
 exports.loadModule = function(moduleSpec, onRegisterTimeout) {
-    var plugin = exports.getPlugin(moduleSpec.pluginName);
-
-    var module = plugin[moduleSpec.moduleName];
+    var isPluginModule = (moduleSpec.pluginName !== undefined);
+    var moduleNamespace;
+    var module;
+    
+    if (isPluginModule) {
+        moduleNamespace = exports.getPlugin(moduleSpec.pluginName);
+        module = moduleNamespace[moduleSpec.moduleName];
+    } else {
+        moduleNamespace = exports.getGlobalModules();
+        module = moduleNamespace[moduleSpec.moduleName];
+    }
+    
     if (module) {
         // Module already loaded. This prob shouldn't happen.
         console.log("Unexpected call to 'loadModule' for a module (" + moduleSpec.moduleName + ") that's already loaded.");
@@ -99,11 +112,17 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
             var timeoutObj = setTimeout(function () {
                 // Timed out waiting on the module to load and register itself.
                 if (!loadingModule.loaded) {
-                    var errorDetail = "Please verify that the plugin '" +
-                        loadingModule.pluginName + "' is installed, and that " +
-                        "it registers a module named '" + loadingModule.moduleName + "'";
+                    var moduleSpec = loadingModule.moduleSpec;
+                    var errorDetail;
                     
-                    console.error('Plugin module load failure: ' + errorDetail);
+                    if (moduleSpec.pluginName) {
+                        errorDetail = "Please verify that the plugin '" +
+                            moduleSpec.pluginName + "' is installed, and that " +
+                            "it registers a module named '" + moduleSpec.moduleName + "'";
+                    } else {
+                        errorDetail = "Timed out waiting on global module '" + moduleSpec.moduleName + "' to load.";
+                    }                    
+                    console.error('Module load failure: ' + errorDetail);
 
                     // Call the reject function and tell it we timed out
                     reject({
@@ -120,31 +139,34 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
         });
     }
     
-    var loadingModule = getLoadingModule(plugin, moduleSpec.moduleName);
+    var loadingModule = getLoadingModule(moduleNamespace, moduleSpec.moduleName);
     if (!loadingModule.waitList) {
         loadingModule.waitList = [];
     }
-    loadingModule.pluginName = moduleSpec.pluginName; 
-    loadingModule.moduleName = moduleSpec.moduleName;
+    loadingModule.moduleSpec = moduleSpec; 
     loadingModule.loaded = false;
 
     try {
         return waitForRegistration(loadingModule, onRegisterTimeout);
     } finally {
-        var moduleId = exports.toPluginModuleId(moduleSpec.pluginName, moduleSpec.moduleName) + ':js';
-        var document = windowHandle.getWindow().document;
-        var script = document.getElementById(moduleId);
+        // We can auto/dynamic load modules in a plugin namespace. Global namespace modules
+        // need to make sure they load themselves (via an adjunct, or whatever).
+        if (isPluginModule) {
+            var moduleId = exports.toPluginModuleId(moduleSpec.pluginName, moduleSpec.moduleName) + ':js';
+            var document = windowHandle.getWindow().document;
+            var script = document.getElementById(moduleId);
 
-        // Add the <script> element to the <head> if it's not already there.
-        if (!script) {
-            var docHead = exports.getHeadElement();
+            // Add the <script> element to the <head> if it's not already there.
+            if (!script) {
+                var docHead = exports.getHeadElement();
 
-            script = createElement('script');
-            script.setAttribute('id', moduleId);
-            script.setAttribute('type', 'text/javascript');
-            script.setAttribute('src', exports.toPluginModuleSrc(moduleSpec.pluginName, moduleSpec.moduleName));
-            script.setAttribute('async', 'true');
-            docHead.appendChild(script);
+                script = createElement('script');
+                script.setAttribute('id', moduleId);
+                script.setAttribute('type', 'text/javascript');
+                script.setAttribute('src', exports.toPluginModuleSrc(moduleSpec.pluginName, moduleSpec.moduleName));
+                script.setAttribute('async', 'true');
+                docHead.appendChild(script);
+            }
         }
     }
 };
@@ -288,12 +310,12 @@ function getAttribute(element, attributeName) {
     }    
 }
 
-function getLoadingModule(plugin, moduleName) {
-    if (!plugin.loadingModules) {
-        plugin.loadingModules = {};
+function getLoadingModule(moduleNamespace, moduleName) {
+    if (!moduleNamespace.loadingModules) {
+        moduleNamespace.loadingModules = {};
     }
-    if (!plugin.loadingModules[moduleName]) {
-        plugin.loadingModules[moduleName] = {};
+    if (!moduleNamespace.loadingModules[moduleName]) {
+        moduleNamespace.loadingModules[moduleName] = {};
     }
-    return plugin.loadingModules[moduleName];
+    return moduleNamespace.loadingModules[moduleName];
 }
