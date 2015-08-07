@@ -171,8 +171,8 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
 };
 
 exports.notifyModuleExported = function(moduleSpec, moduleExports) {
-    var plugin = exports.getPlugin(moduleSpec.pluginName);
-    var loadingModule = getLoadingModule(plugin, moduleSpec.moduleName);
+    var moduleNamespace = exports.getModuleNamespace(moduleSpec);
+    var loadingModule = getLoadingModule(moduleNamespace, moduleSpec.moduleName);
     
     loadingModule.loaded = true;
     if (loadingModule.waitList) {
