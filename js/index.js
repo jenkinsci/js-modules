@@ -99,7 +99,8 @@ exports.require = function(moduleQName) {
 /**
  * Export a module.
  * 
- * @param pluginName The Jenkins plugin in which the module resides.
+ * @param pluginName The Jenkins plugin in which the module resides, or undefined if the modules is in
+ * the "global" module namespace e.g. a Jenkins core bundle.
  * @param moduleName The name of the module. 
  * @param module The CommonJS style module.
  * @param onError On error callback;
@@ -107,9 +108,15 @@ exports.require = function(moduleQName) {
 exports.export = function(pluginName, moduleName, module, onError) {
     internal.onReady(function() {
         try {
-            var plugin = internal.getPlugin(pluginName);
-            if (plugin[moduleName]) {
-                throw "Jenkins plugin module '" + pluginName + ":" + moduleName + "' already registered.";
+            var moduleSpec = {pluginName: pluginName, moduleName: moduleName};
+            var moduleNamespace = internal.getModuleNamespace(moduleSpec);
+            
+            if (moduleNamespace[moduleName]) {
+                if (pluginName) {
+                    throw "Jenkins plugin module '" + pluginName + ":" + moduleName + "' already registered.";
+                } else {
+                    throw "Jenkins global module '" + moduleName + "' already registered.";
+                }
             }
             
             if (module.exports === undefined) {
@@ -117,10 +124,10 @@ exports.export = function(pluginName, moduleName, module, onError) {
                     exports: module
                 };
             }
-            plugin[moduleName] = module;
+            moduleNamespace[moduleName] = module;
             
             // Notify all that the module has been registered. See internal.loadModule also.
-            internal.notifyModuleExported({pluginName: pluginName, moduleName: moduleName}, module.exports);
+            internal.notifyModuleExported(moduleSpec, module.exports);
         } catch (e) {
             console.error(e);
             if (onError) {
