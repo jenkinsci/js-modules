@@ -99,10 +99,11 @@ exports.require = function(moduleQName) {
 /**
  * Export a module.
  * 
- * @param pluginName The Jenkins plugin in which the module resides, or undefined if the modules is in
+ * @param pluginName The Jenkins plugin in which the module resides, or "undefined" if the modules is in
  * the "global" module namespace e.g. a Jenkins core bundle.
  * @param moduleName The name of the module. 
- * @param module The CommonJS style module.
+ * @param module The CommonJS style module, or "undefined" if we just want to notify other modules waiting on
+ * the loading of this module.
  * @param onError On error callback;
  */
 exports.export = function(pluginName, moduleName, module, onError) {
@@ -119,7 +120,11 @@ exports.export = function(pluginName, moduleName, module, onError) {
                 }
             }
             
-            if (module.exports === undefined) {
+            if (!module) {
+                module = {
+                    exports: {}
+                };
+            } else if (module.exports === undefined) {
                 module = {
                     exports: module
                 };
