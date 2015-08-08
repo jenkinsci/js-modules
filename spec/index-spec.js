@@ -262,6 +262,7 @@ describe("index.js", function () {
     it("- test addScript", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
+            var internal = require("../js/internal");
             var document = require('window-handle').getWindow().document;
 
             var scriptId = 'adjunct:path/to/script.js';
@@ -269,7 +270,7 @@ describe("index.js", function () {
 
             expect(jsEl).toBe(null);
             
-            jenkins.addScript(scriptId, 'path/to/script.js')
+            internal.addScript(scriptId, 'path/to/script.js')
             
             jsEl = document.getElementById(scriptId);
             expect(jsEl).toBeDefined();

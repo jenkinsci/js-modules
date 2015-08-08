@@ -143,15 +143,6 @@ exports.export = function(pluginName, moduleName, module, onError) {
 };
 
 /**
- * Add a script tag to the page.
- * @param scriptId The script tag id (to prevent duplication).
- * @param scriptSrc The script source path.
- */
-exports.addScript = function(scriptId, scriptSrc) {
-    return internal.addScript(scriptId, scriptSrc);
-};
-
-/**
  * Add a module's CSS to the browser page.
  * 
  * <p>
@@ -211,7 +202,7 @@ internal.globalInitializer(function(jenkinsCIGlobal) {
         // of hinting to people to not use it.
         jenkinsCIGlobal._internal = {
             import: exports.import,
-            addScript: exports.addScript
+            addScript: internal.addScript
         };
     }
 });
