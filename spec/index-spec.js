@@ -163,6 +163,32 @@ describe("index.js", function () {
                 }); // timeout before Jasmine does
         });
     });
+
+    it("- test import via global '_internal'", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var internal = require("../js/internal");
+            
+            // Require before the modules are registered.
+            // The require should "trigger" the loading of the module from the plugin.
+            // Should pass because export will happen before the timeout
+            jenkins.setRegisterTimeout(2000);
+            var _internal = internal.getJenkins()._internal;
+            _internal.import('pluginA:mathUtils')
+                .onFulfilled(function(mathUtils) {
+                    // This function should only be called once both modules have been exported
+                    expect(mathUtils.add(2,2)).toBe(4);
+                    done();               
+                }); // timeout before Jasmine does
+            
+            // Now mimic registering of the plugin modules.
+            jenkins.export('pluginA', 'mathUtils', {
+                add: function(lhs, rhs) {
+                    return lhs + rhs;
+                }
+            });
+        });
+    });
     
     it("- test import and export global namespace async successful", function (done) {
         testUtil.onJenkinsPage(function() {

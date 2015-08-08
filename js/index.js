@@ -202,3 +202,16 @@ exports.initJenkinsGlobal = function() {
     internal.initJenkinsGlobal();
 };
 
+internal.globalInitializer(function(jenkinsCIGlobal) {
+    // For backward compatibility, we need to make some jenkins-modules
+    // functions globally available e.g. to allow legacy code wait for
+    // certain modules to be loaded, as with legacy adjuncts.
+    if (!jenkinsCIGlobal._internal) {
+        // Put the functions on an object called '_internal' as a way
+        // of hinting to people to not use it.
+        jenkinsCIGlobal._internal = {
+            import: exports.import,
+            addScript: exports.addScript
+        };
+    }
+});

@@ -1,6 +1,7 @@
 var promise = require("./promise");
 var windowHandle = require("window-handle");
 var jenkinsCIGlobal;
+var globalInitializer;
 
 exports.onReady = function(callback) {
     // This allows test based initialization of jenkins-modules when there might 
@@ -12,11 +13,18 @@ exports.onReady = function(callback) {
             callback();
         });
     }    
-}
+};
+
+exports.globalInitializer = function(func) {
+    globalInitializer = func;
+};
 
 exports.initJenkinsGlobal = function() {
     jenkinsCIGlobal = {
     };
+    if (globalInitializer) {
+        globalInitializer(jenkinsCIGlobal);
+    }
 };
 
 exports.clearJenkinsGlobal = function() {    
@@ -90,7 +98,7 @@ exports.import = function(moduleQName, onRegisterTimeout) {
             }
         });
     });    
-}
+};
 
 exports.loadModule = function(moduleSpec, onRegisterTimeout) {
     var moduleNamespace = exports.getModuleNamespace(moduleSpec);
@@ -175,7 +183,7 @@ exports.addScript = function(scriptId, scriptSrc) {
         script.setAttribute('async', 'true');
         docHead.appendChild(script);
     }
-}
+};
 
 exports.notifyModuleExported = function(moduleSpec, moduleExports) {
     var moduleNamespace = exports.getModuleNamespace(moduleSpec);
