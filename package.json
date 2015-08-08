@@ -1,6 +1,6 @@
 {
   "name": "jenkins-modules",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Jenkins CI JavaScript modules",
   "main": "js/index.js",
   "scripts": {

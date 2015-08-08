@@ -153,24 +153,29 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
         // We can auto/dynamic load modules in a plugin namespace. Global namespace modules
         // need to make sure they load themselves (via an adjunct, or whatever).
         if (moduleSpec.pluginName) {
-            var moduleId = exports.toPluginModuleId(moduleSpec.pluginName, moduleSpec.moduleName) + ':js';
-            var document = windowHandle.getWindow().document;
-            var script = document.getElementById(moduleId);
-
-            // Add the <script> element to the <head> if it's not already there.
-            if (!script) {
-                var docHead = exports.getHeadElement();
-
-                script = createElement('script');
-                script.setAttribute('id', moduleId);
-                script.setAttribute('type', 'text/javascript');
-                script.setAttribute('src', exports.toPluginModuleSrc(moduleSpec.pluginName, moduleSpec.moduleName));
-                script.setAttribute('async', 'true');
-                docHead.appendChild(script);
-            }
+            var scriptId = exports.toPluginModuleId(moduleSpec.pluginName, moduleSpec.moduleName) + ':js';
+            var scriptSrc = exports.toPluginModuleSrc(moduleSpec.pluginName, moduleSpec.moduleName);
+            exports.addScript(scriptId, scriptSrc);
         }
     }
 };
+
+exports.addScript = function(scriptId, scriptSrc) {
+    var document = windowHandle.getWindow().document;
+    var script = document.getElementById(scriptId);
+
+    // Add the <script> element to the <head> if it's not already there.
+    if (!script) {
+        var docHead = exports.getHeadElement();
+
+        script = createElement('script');
+        script.setAttribute('id', scriptId);
+        script.setAttribute('type', 'text/javascript');
+        script.setAttribute('src', scriptSrc);
+        script.setAttribute('async', 'true');
+        docHead.appendChild(script);
+    }
+}
 
 exports.notifyModuleExported = function(moduleSpec, moduleExports) {
     var moduleNamespace = exports.getModuleNamespace(moduleSpec);

@@ -143,6 +143,15 @@ exports.export = function(pluginName, moduleName, module, onError) {
 };
 
 /**
+ * Add a script tag to the page.
+ * @param scriptId The script tag id (to prevent duplication).
+ * @param scriptSrc The script source path.
+ */
+exports.addScript = function(scriptId, scriptSrc) {
+    return internal.addScript(scriptId, scriptSrc);
+};
+
+/**
  * Add a module's CSS to the browser page.
  * 
  * <p>

@@ -233,6 +233,26 @@ describe("index.js", function () {
         });
     });   
     
+    it("- test addScript", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var document = require('window-handle').getWindow().document;
+
+            var scriptId = 'adjunct:path/to/script.js';
+            var jsEl = document.getElementById(scriptId);
+
+            expect(jsEl).toBe(null);
+            
+            jenkins.addScript(scriptId, 'path/to/script.js')
+            
+            jsEl = document.getElementById(scriptId);
+            expect(jsEl).toBeDefined();
+            expect(jsEl.getAttribute('src')).toBe('path/to/script.js');
+            
+            done();
+        });
+    });
+    
     it("- test addModuleCSSToPage", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
@@ -250,7 +270,6 @@ describe("index.js", function () {
             done();
         });
     });
-
 
     it("- test rootURL/resURL not defined", function (done) {
         testUtil.onJenkinsPage(function() {
