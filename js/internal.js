@@ -1,7 +1,7 @@
 var promise = require("./promise");
 var windowHandle = require("window-handle");
 var jenkinsCIGlobal;
-var globalInitializer;
+var globalInitListeners = [];
 
 exports.onReady = function(callback) {
     // This allows test based initialization of jenkins-modules when there might 
@@ -15,15 +15,17 @@ exports.onReady = function(callback) {
     }    
 };
 
-exports.globalInitializer = function(func) {
-    globalInitializer = func;
+exports.onJenkinsGlobalInit = function(callback) {
+    globalInitListeners.push(callback);
 };
 
 exports.initJenkinsGlobal = function() {
     jenkinsCIGlobal = {
     };
-    if (globalInitializer) {
-        globalInitializer(jenkinsCIGlobal);
+    if (globalInitListeners) {
+        for (var i = 0; i < globalInitListeners.length; i++) {
+            globalInitListeners[i](jenkinsCIGlobal);
+        }
     }
 };
 

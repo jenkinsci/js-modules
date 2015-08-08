@@ -193,7 +193,7 @@ exports.initJenkinsGlobal = function() {
     internal.initJenkinsGlobal();
 };
 
-internal.globalInitializer(function(jenkinsCIGlobal) {
+internal.onJenkinsGlobalInit(function(jenkinsCIGlobal) {
     // For backward compatibility, we need to make some jenkins-modules
     // functions globally available e.g. to allow legacy code wait for
     // certain modules to be loaded, as with legacy adjuncts.
