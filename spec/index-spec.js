@@ -259,9 +259,8 @@ describe("index.js", function () {
         });
     });   
     
-    it("- test addScript", function (done) {
+    it("- test addScript without 'data-replaceable' attribute", function (done) {
         testUtil.onJenkinsPage(function() {
-            var jenkins = require("../js/index");
             var internal = require("../js/internal");
             var document = require('window-handle').getWindow().document;
 
@@ -270,11 +269,48 @@ describe("index.js", function () {
 
             expect(jsEl).toBe(null);
             
-            internal.addScript(scriptId, 'path/to/script.js')
-            
-            jsEl = document.getElementById(scriptId);
+            jsEl = internal.addScript(scriptId, 'path/to/script.js')
             expect(jsEl).toBeDefined();
             expect(jsEl.getAttribute('src')).toBe('path/to/script.js');
+            
+            // Trying to add another <script> of the same id should fail
+            // because the existing <script> doesn't have a 'data-replaceable="true"'
+            // attribute.
+            
+            var jsEl2 = internal.addScript(scriptId, 'path/to/script.js')
+            expect(jsEl2).not.toBeDefined();
+            
+            done();
+        });
+    });
+    
+    it("- test addScript with 'data-replaceable' attribute", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var internal = require("../js/internal");
+            var document = require('window-handle').getWindow().document;
+
+            var scriptId = 'adjunct:path/to/script.js';
+            var jsEl = document.getElementById(scriptId);
+
+            expect(jsEl).toBe(null);
+            jsEl = internal.addScript(scriptId, 'path/to/script.js')
+            expect(jsEl).toBeDefined();
+            expect(jsEl.parentNode).toBe(internal.getHeadElement());
+            
+            // add the 'data-replaceable' attribute
+            jsEl.setAttribute('data-replaceable', 'true');
+            
+            // Now when we try to add another <script> of the same id, it will
+            // work because the existing <script> has a 'data-replaceable="true"'
+            // attribute.
+            
+            var jsEl2 = internal.addScript(scriptId, 'path/to/script.js')
+            expect(jsEl2).toBeDefined(); // addScript worked?
+            expect(jsEl2).not.toBe(jsEl); // and it's not the original of the same id?
+            
+            // and the original jsEl should no longer be attached to the 
+            // document head i.e. should have been deleted.
+            expect(jsEl.parentNode).not.toBe(internal.getHeadElement());
             
             done();
         });

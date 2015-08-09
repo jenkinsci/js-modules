@@ -174,17 +174,29 @@ exports.addScript = function(scriptId, scriptSrc) {
     var document = windowHandle.getWindow().document;
     var script = document.getElementById(scriptId);
 
-    // Add the <script> element to the <head> if it's not already there.
-    if (!script) {
-        var docHead = exports.getHeadElement();
-
-        script = createElement('script');
-        script.setAttribute('id', scriptId);
-        script.setAttribute('type', 'text/javascript');
-        script.setAttribute('src', scriptSrc);
-        script.setAttribute('async', 'true');
-        docHead.appendChild(script);
+    if (script) {
+        var replaceable = script.getAttribute('data-replaceable');
+        if (replaceable && replaceable === 'true') {
+            // This <script> element is replaceable. In this case, 
+            // we remove the existing script element and add a new one of the
+            // same id and with the specified src attribute.
+            // Adding happens below.
+            script.parentNode.removeChild(script);
+        } else {
+            return undefined;
+        }
     }
+
+    var docHead = exports.getHeadElement();
+
+    script = createElement('script');
+    script.setAttribute('id', scriptId);
+    script.setAttribute('type', 'text/javascript');
+    script.setAttribute('src', scriptSrc);
+    script.setAttribute('async', 'true');
+    docHead.appendChild(script);
+    
+    return script;
 };
 
 exports.notifyModuleExported = function(moduleSpec, moduleExports) {
