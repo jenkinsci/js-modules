@@ -1,5 +1,5 @@
-Jenkins CI JavaScript "module bundle" loader i.e. a loader for loading more than one module in one request 
-(i.e. a "bundle").
+This is a JavaScript "module bundle" loader for Jenkins ([NPM] package) i.e. a loader for loading a JavaScript file that contains one or more
+[CommonJS]/[node.js] style modules in a single HTTP request (i.e. a "bundle").
 
  
 Install Package:
@@ -7,171 +7,104 @@ Install Package:
 ```
 npm install --save jenkins-js-modules
 ```
+__Table of Contents__:
+<p>
+<ul>
+    <a href="#problem--motivation">Problem / Motivation</a><br/>
+    <a href="#keep-calm">Keep Calm</a><br/>
+    <a href="#about-jenkins-modules">About Jenkins Modules</a><br/>
+    <a href="#support-modules">Support Modules</a><br/>
+    <a href="#framework-libs-jenkinscijs-libs">Framework Libs (jenkinsci/js-libs)</a><br/>
+</ul>    
+</p>
  
-# Background
+# Problem / Motivation
+For the most part, the Jenkins GUI is constructed on the server side from [Jelly] files ([Stapler] etc). Client-side
+JavaScript has not played a big part in the Jenkins GUI.
 
-JavaScript modularization has been a bit of a black spot for Jenkins UI for a while. Jenkins UI rendering has really 
-been a server side process. Client side JavaScript is something that has been shoehorned in after-the-fact using adjuncts etc.
+If the Jenkins GUI is to be modernized and improved (from a user experience perspective), client-side JavaScript
+needs to be able to play a bigger part. If that's so, we need to modernize/improve the development patterns around how
+JavaScript is currently used in Jenkins.
 
-Something that we (at CloudBees) started experimenting with was the idea of modularizing JavaScript using
-[nodejs](https://nodejs.org/)/[CommonJS](http://wiki.commonjs.org/wiki/CommonJS) style modules. This also
-allowed us to tap into a huge ecosystem of mature and modern JavaScript libraries.
+As we see it, the main issues today are:
 
-On the browser side, the options for loading these modules seemed mainly to be [RequireJS](http://requirejs.org/) and
-[Browserify](http://browserify.org/). We went with Browserify because it allowed two things:
-
-1. Loading of all "application" modules in a single request as a "bundle". This might seem like premature optimization but we had heard stories re how this became a problem when using AMD/RequireJS i.e. performance issues with apps having lots of modules and the modules being loaded one at a time. Just google and you'll find plenty of them.
-1. It allowed us to have a really nice/clean synchronous nodejs style `require` semantics wrt to loading modules. Loading all modules via an asynchronous `define` (ala RequireJS) is not so nice.  
-
-[Browserify](http://browserify.org/) is a really nice solution for modularising CommonJS style JavaScript code
-for running in the browser. The problems for Jenkins are:
-
-1. There are many Jenkins components potentially building JavaScript modules, all requiring access to common JavaScript framework libraries (jQuery, Bootstrap, jQuery UI etc).
-We don't want each module loading their own copy of jQuery etc.
-1. Jenkins is not a website built by one team of developers. There are 1000+ plugins now, all contributing to the UI and all developed in different "eras"
-which, among other things, means they will be developed to work against different versions of JavaScript libraries. We need to make it possible for Jenkins "apps" to
-get the right version of a given framework library at runtime. The idea of a single "global" instance of these framework library shared across all apps is broken.
-    * jQuery is a big concern here, where the version issue is exacerbated by the jQuery extensions issue i.e. Jenkins may have a single jQuery instance with a varying version + any number of unknown jQuery extensions "glom'd" onto it, all potentially conflicting with each other. So in effect, this is basically replicating the global `window` namespace issues of old into the `$` namespace. This is not sustainable for Jenkins and is guaranteed to lead to all sorts of strange UI errors. See "[jquery-detached](https://github.com/tfennelly/jquery-detached)"   
-1. It is expect that Jenkins plugins will be building shareable JavaScript components e.g. a plugin that has a REST API could expose that rest API to other plugin UI components via a JavaScript module.
+1. __Modularity__: Jenkins currently has no concept of modularity when it comes to the JavaScript code used in the GUI. All of the JavaScript is concentrated mainly in a single JavaScript file i.e. `hudson-behaviour.js`.
+1. __Anti-Patterns__: Too much JavaScript code is bound into the global scope, creating a litany of well known issues.
+1. __Testability__: Not easy to write JavaScript unit tests. The only way JavaScript is tested is via `JenkinsRule` (HtmlUnit and it's `WebClient`).
+1. __Multiple versions of Framework Libraries__: One version of Prototype/jQuery doesn’t fit all. We need a way of supporting multiple versions of the same library (e.g. jQuery) in a way that works in the browser, "detached" from the global scope. We need to be able to introduce new versions of libraries (and deprecate old versions) in an orderly fashion.
  
-[Browserify](http://browserify.org/) can be used to build a single, self contained JavaScript bundle. The modules in that bundle can require other modules in the bundle, but cannot require modules from other bundles i.e. "external" modules (this is not strictly true as Browserify does provide a way to link in external modules from other bundles, but not in a way that works for a "non website" type app such as Jenkins, where the external dependencies are not so easy to pre-resolve such that they can all be "there" before being `require`d).
-That means each bundle needs to include everything it needs, including jQuery and other framework libraries. This is not sustainable for Jenkins and is the problem that this module is targeted at i.e. to allow plugins
-(or Jenkins core) that are building self contained CommonJS style JavaScript modules (using [Browserify](http://browserify.org/) if they want)
-to "export" one or more of those modules in the browser, allowing those modules to be "required" across bundle boundaries.
+These are the problems that `jenkins-js-modules` (this [NPM] package) is targeted at helping to solve.
 
-So, this module is all about loading module "bundles" (apps) and providing a means for them to load their dependencies (jQuery etc) and wiring them together. The idea is that
-the "local" app modules are all loaded cleanly through the nodejs style `require` semantics (because they are all loaded in a single bundle), while "external" dependencies (jQuery etc) 
-are loaded asynchronously (allowing them to be loaded on demand etc). The assumption here is that the number of external module dependencies should be relatively small in comparison
-to the number of modules in the app itself. In fact, this module lets us async load the external modules upfront in the app's "main" module and then sync require those modules
-from down in the app sub-modules ([see later section on sync loading](https://github.com/tfennelly/jenkins-js-modules#synchronously-require-javascript-modules)).
+It is hoped that `jenkins-js-modules` will help those that are interested (see next section) in maintaining __modular__,
+__unit testable__, __evolvable__ (see note below) JavaScript code that runs in a more predictable/stable environment that
+is more immune to plugin updates etc (e.g. an upgrade to the 
+[jQuery plugin](https://wiki.jenkins-ci.org/display/JENKINS/jQuery+Plugin) doesn't break the plugin GUI).
+Using [CommonJS] style modularity also makes it possible to __more easily leverage the growing set of publicly available
+[NPM]/[node.js] packages__, which is a huge benefit.
 
-# `export` JavaScript modules
+> __What do we mean by "evolvable"?__: `jenkins-js-modules` makes it possible to safely run multiple versions of core JavaScript Framework libs on the same page (jQuery, Bootstrap etc). This makes it possible for modular code (built on `jenkins-js-modules`) to depend on an explicit version of a JS lib that is guaranteed to remain available on e.g. plugin upgrades. Conversely, the same modular code can upgrade the version of a lib it depends on without effecting other modular code that still depends on an older version.
 
-A Jenkins Plugin can "export" a JavaScript module (CommonJS style module) by calling
-`require('jenkins-js-modules').export`, allowing other plugin bundles to `import` that module
-(see next section).
+# Keep Calm
+One concern that has been raised about new JavaScript approaches that might involve new technologies (new to the 
+Jenkins tool-chain) is the fear that it would add to the learning curve for new and existing Jenkins plugin
+developers. We added this section to this README specifically to alleviate that concern.
 
+<p align="center">
+    <img src="img/keep_calm.png" alt="KEEP CALM - THIS IS OPTIONAL">
+</p>
 
-```javascript
-exports.add = function(lhs, rhs {
-    return lhs + hrs;
-}
+The use of `jenkins-js-modules` for plugin GUI development is __totally optional__! If you want to continue developing
+your plugin's GUI using the same technologies you've always used (Jelly etc), then that is not a problem. You can
+happily ignore everything here; nothing new is being forced on anyone!
 
- // export the CommonJS module
-require('jenkins-js-modules').export('pluginA', 'mathUtils', module);
-```
-
-We assume that the plugin bundle JavaScript is bundled using [Browserify](http://browserify.org/), and can be
-loaded from `<jenkins>/plugin/<pluginName>/jsmodules/<moduleName>.js` e.g. `/jenkins/plugin/pluginA/jsmodules/mathUtils.js`.
-
-# Asynchronously `import` JavaScript modules
-
-A JavaScript module in one plugin ("pluginB") can "require" a module from another plugin ("pluginA" see above)
-by calling `require('jenkins-js-modules').import`. We call these "external" modules here.
-
-
-```javascript
-var mathUtil; // initialise once the module is loaded and registered 
-
-// The require is async (returning a Promise) because the 'pluginA:mathUtils' is loaded async.
-require('jenkins-js-modules').import('pluginA:mathUtils')
-    .onFulfilled(function(mathUtils) {
-        // Module loaded ok
-        mathUtil = module;
-    })
-    .onRejected(function(error) {
-        // Module didn't load for some reason e.g. a timeout
-        alert(error.detail);
-    });
-
-exports.magicFunc = function() {
-    // might want to assert mathUtil is initialised
-    
-    // do stuff ...
-}
-```
-
-If `require('jenkins-js-modules').import` is called for a module that is not yet loaded, 
-`require('jenkins-js-modules').import` will trigger the loading of that module from the plugin, hence the 
-async/promise nature i.e. you can't synchronously `get` a module.
-
-You can also perform an `import` operation if you require loading of multiple modules. So if you require
-2 modules (e.g. "bootstrap3" and "jqueryui1") before proceeding, you can do the following:
-
-```javascript
-// Again, the require is async (returning a Promise). The promise will not be fulfilled until both
-// "bootstrap3" and "jqueryui1" are loaded.
-require('jenkins-js-modules').import('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
-    .onFulfilled(function(bootstrap3, jqueryui1) {
-        // Note how the loaded modules are passed as args in the 
-        // same order as they are specified in the call to import.
-    });
-}
-```
-
-You might call `import` wth multiple module names in your "top level" script if you want to make sure your "application"
-only runs after all required external modules are loaded. 
-
-```javascript
-require('jenkins-js-modules').import('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
-    .onFulfilled(function() {
-        // Now it's safe for my "application" to run...
-    });
-}
-```
-
-# Synchronously `require` JavaScript modules
-
-Asynchronously requiring external modules in an application can be a bit "ugly", requiring wrapping of code in
-async callbacks etc. For that reason, `jenkins-js-modules` supports a `require` function that can be used
-to synchronously `require` these external modules ala how CommonJS `require` can be used to `require` a
-local module (local to the application bundle).
-
-As stated earlier, one assumption is that the application has a top level "main" JavaScript file from where all other
-modules in the application are loaded, either directly or indirectly e.g.
+`jenkins-js-modules` is designed to help where the maintainer is interested in using "newer" JavaScript technologies
+to build a richer plugin GUI that has more maintainable JavaScript code (more modular, better unit testing etc) that
+can be more easily evolved over time (can safely move to newer versions of "Framework" libraries such as jQuery etc).
  
-```
--- main-mod.js
-   \- sub-mod-1.js
-      \- sub-mod-1.1.js
-      \- sub-mod-1.2.js
-   \- sub-mod-2.js
-      \- sub-mod-2.1.js
-      \- sub-mod-2.2.js
-```
+Again, if none of this interests you at the moment, then that is not a problem. You can continue building your plugin
+GUI using the same techniques and technologies as before (server-side, Jelly etc).
+  
+# About Jenkins Modules
 
-Another assumption was that "apps" will typically have more internal modules than they have dependencies on
-external modules (which would typically be "framework" type modules such as jQuery, Bootstrap etc).
+The following slides attempt to bring you through `jenkins-js-modules` in some more detail.
+  
+<p align="center">
+    <a href="https://docs.google.com/presentation/d/1M8sf5zuPgf7osR2Q7wfbkgVs7Es93rYAJTbtwiGfI7E/pub?start=false&loop=false&delayms=10000" target="_blank">
+        <img src="img/about.png" alt="About Jenkins Modules">
+    </a>
+</p>  
 
-Using [Browserify](http://browserify.org/), we can assemble all app modules (e.g. above) into a single bundle that can be loaded
-in a single request. So lets assume that sub modules (`sub-mod-1.1.js` etc) depend on jQuery, Bootstrap etc. Instead of defining async `import`s
-in all modules, a cleaner approach is to `import` all external modules from the top level module (`main-mod.js`) e.g.
+# Support Modules
 
-_main-mod.js_
+The following [NPM] packages are designed to aid the use and adoption of `jenkins-js-modules`:
 
-```javascript
- // load all external deps before we "start" the app
-require('jenkins-js-modules')
-    .import('jquery-detached:jquery2', 'bootstrap:bootstrap3')
-    .onFulfilled(function() {
-        // run the app
-        
-        // and some time later....
-        var subModule = require('sub-mod-1.1);
-    });
-```
+* [jenkins-js-builder]: See this package for details on how to create module bundles for `jenkins-js-modules`.
+* [jenkins-js-test]: See this package for details on how to test modules for module bundles for `jenkins-js-modules`. This package's functionality is indirectly available via [jenkins-js-builder].
 
-So, it's perfectly safe for `sub-mod-1.1.js` to synchronously `require` it's external modules e.g. `jenkins.require('jquery-detached:jquery2')`:
+# Framework Libs (jenkinsci/js-libs)
+As stated earlier, using [CommonJS] style modularity makes it possible to more easily leverage the growing set of publicly available
+[NPM]/[node.js] packages. If you want to use some really cool [NPM] package that you just found, all you need to do is follow the
+"standard" [NPM] package installation process, adding it to your "app" bundle e.g. `npm install --save cool-new-lib`.
 
-_sub-mod-1.1.js_
-```javascript
-var jenkins = require('jenkins-js-modules');
-var jquery = jenkins.require('jquery-detached:jquery2');
+This is great, but if followed all the way, your JavaScript "app" bundles will soon become quite heavy for the browser to
+load because they will contain all JavaScript required by all the modules in the bundle.
 
-// etc ...
-```
+The main feature of `jenkins-js-modules` is it's ability to load module bundles that can `export` / `import` modules to/from
+other modules bundles i.e. share common modules between bundles (see above slides). This means we can create `jenkins-js-modules` style 
+module bundles for __different versions__ of all of the major JavaScript Framework libs out there (jQuery, Bootstrap etc), making it possible for 
+"app" bundles to share common Framework libs and to not have them in their "app" bundle, making them considerably lighter for
+browser load and helping to avoid the bundle bloat problem.
 
-Remember the assumption that there are "relatively" few external module dependencies Vs the number of internal app modules. Based on that and the
-fact that all internal modules can be loaded synchronously using `require` because they are are all in a single bundle (thanks to Browserify), we
-should be able to keep the top level async loading (in `main-mod.js`) relatively clean because we're able to limit it to the framework modules
-(again, thanks to Browserify).
+We have already created Framework lib bundles for a number of common JavaScript libs (jQuery, Bootstrap and more).
+
+> __[Framework libs are located in jenkinsci/js-libs](https://github.com/jenkinsci/js-libs)__.
+
+[NPM]: https://www.npmjs.com/
+[CommonJS]: http://www.commonjs.org/
+[node.js]: https://nodejs.org/en/
+[Jelly]: https://wiki.jenkins-ci.org/display/JENKINS/Basic+guide+to+Jelly+usage+in+Jenkins
+[Stapler]: http://stapler.kohsuke.org/
+[jquery-detached]: https://github.com/tfennelly/jquery-detached
+[jqueryui-detached]: https://github.com/tfennelly/jqueryui-detached
+[jenkins-js-builder]: https://github.com/tfennelly/jenkins-js-builder
+[jenkins-js-test]: https://github.com/tfennelly/jenkins-js-test
