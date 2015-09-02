@@ -5,7 +5,7 @@ Jenkins CI JavaScript "module bundle" loader i.e. a loader for loading more than
 Install Package:
 
 ```
-npm install --save jenkins-modules
+npm install --save jenkins-js-modules
 ```
  
 # Background
@@ -43,12 +43,12 @@ So, this module is all about loading module "bundles" (apps) and providing a mea
 the "local" app modules are all loaded cleanly through the nodejs style `require` semantics (because they are all loaded in a single bundle), while "external" dependencies (jQuery etc) 
 are loaded asynchronously (allowing them to be loaded on demand etc). The assumption here is that the number of external module dependencies should be relatively small in comparison
 to the number of modules in the app itself. In fact, this module lets us async load the external modules upfront in the app's "main" module and then sync require those modules
-from down in the app sub-modules ([see later section on sync loading](https://github.com/tfennelly/jenkins-modules#synchronously-require-javascript-modules)).
+from down in the app sub-modules ([see later section on sync loading](https://github.com/tfennelly/jenkins-js-modules#synchronously-require-javascript-modules)).
 
 # `export` JavaScript modules
 
 A Jenkins Plugin can "export" a JavaScript module (CommonJS style module) by calling
-`require('jenkins-modules').export`, allowing other plugin bundles to `import` that module
+`require('jenkins-js-modules').export`, allowing other plugin bundles to `import` that module
 (see next section).
 
 
@@ -58,7 +58,7 @@ exports.add = function(lhs, rhs {
 }
 
  // export the CommonJS module
-require('jenkins-modules').export('pluginA', 'mathUtils', module);
+require('jenkins-js-modules').export('pluginA', 'mathUtils', module);
 ```
 
 We assume that the plugin bundle JavaScript is bundled using [Browserify](http://browserify.org/), and can be
@@ -67,14 +67,14 @@ loaded from `<jenkins>/plugin/<pluginName>/jsmodules/<moduleName>.js` e.g. `/jen
 # Asynchronously `import` JavaScript modules
 
 A JavaScript module in one plugin ("pluginB") can "require" a module from another plugin ("pluginA" see above)
-by calling `require('jenkins-modules').import`. We call these "external" modules here.
+by calling `require('jenkins-js-modules').import`. We call these "external" modules here.
 
 
 ```javascript
 var mathUtil; // initialise once the module is loaded and registered 
 
 // The require is async (returning a Promise) because the 'pluginA:mathUtils' is loaded async.
-require('jenkins-modules').import('pluginA:mathUtils')
+require('jenkins-js-modules').import('pluginA:mathUtils')
     .onFulfilled(function(mathUtils) {
         // Module loaded ok
         mathUtil = module;
@@ -91,8 +91,8 @@ exports.magicFunc = function() {
 }
 ```
 
-If `require('jenkins-modules').import` is called for a module that is not yet loaded, 
-`require('jenkins-modules').import` will trigger the loading of that module from the plugin, hence the 
+If `require('jenkins-js-modules').import` is called for a module that is not yet loaded, 
+`require('jenkins-js-modules').import` will trigger the loading of that module from the plugin, hence the 
 async/promise nature i.e. you can't synchronously `get` a module.
 
 You can also perform an `import` operation if you require loading of multiple modules. So if you require
@@ -101,7 +101,7 @@ You can also perform an `import` operation if you require loading of multiple mo
 ```javascript
 // Again, the require is async (returning a Promise). The promise will not be fulfilled until both
 // "bootstrap3" and "jqueryui1" are loaded.
-require('jenkins-modules').import('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
+require('jenkins-js-modules').import('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
     .onFulfilled(function(bootstrap3, jqueryui1) {
         // Note how the loaded modules are passed as args in the 
         // same order as they are specified in the call to import.
@@ -113,7 +113,7 @@ You might call `import` wth multiple module names in your "top level" script if 
 only runs after all required external modules are loaded. 
 
 ```javascript
-require('jenkins-modules').import('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
+require('jenkins-js-modules').import('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqueryui1')
     .onFulfilled(function() {
         // Now it's safe for my "application" to run...
     });
@@ -123,7 +123,7 @@ require('jenkins-modules').import('jenkins-jslib:bootstrap3', 'jenkins-jslib:jqu
 # Synchronously `require` JavaScript modules
 
 Asynchronously requiring external modules in an application can be a bit "ugly", requiring wrapping of code in
-async callbacks etc. For that reason, `jenkins-modules` supports a `require` function that can be used
+async callbacks etc. For that reason, `jenkins-js-modules` supports a `require` function that can be used
 to synchronously `require` these external modules ala how CommonJS `require` can be used to `require` a
 local module (local to the application bundle).
 
@@ -151,7 +151,7 @@ _main-mod.js_
 
 ```javascript
  // load all external deps before we "start" the app
-require('jenkins-modules')
+require('jenkins-js-modules')
     .import('jquery-detached:jquery2', 'bootstrap:bootstrap3')
     .onFulfilled(function() {
         // run the app
@@ -165,7 +165,7 @@ So, it's perfectly safe for `sub-mod-1.1.js` to synchronously `require` it's ext
 
 _sub-mod-1.1.js_
 ```javascript
-var jenkins = require('jenkins-modules');
+var jenkins = require('jenkins-js-modules');
 var jquery = jenkins.require('jquery-detached:jquery2');
 
 // etc ...
