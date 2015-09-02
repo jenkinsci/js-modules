@@ -1,7 +1,7 @@
 {
-  "name": "jenkins-modules",
-  "version": "1.1.1",
-  "description": "Jenkins CI JavaScript modules",
+  "name": "jenkins-js-modules",
+  "version": "1.0.0",
+  "description": "Jenkins CI JavaScript module bundle loader",
   "main": "js/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,7 +10,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tfennelly/jenkins-modules"
+    "url": "https://github.com/tfennelly/jenkins-js-modules"
   },
   "devDependencies": {
     "gulp": "^3.8.11",
