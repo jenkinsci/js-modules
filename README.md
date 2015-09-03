@@ -15,10 +15,12 @@ __Table of Contents__:
     <a href="#about-jenkins-modules">About Jenkins Modules</a><br/>
     <a href="#support-modules">Support Modules</a><br/>
     <a href="#framework-libs-jenkinscijs-libs">Framework Libs (jenkinsci/js-libs)</a><br/>
-    <a href="FAQ.md">FAQ</a><br/>
     <a href="#planned-improvements">Planned Improvements</a><br/>
+    <a href="FAQs.md">FAQs</a><br/>
 </ul>    
 </p>
+
+<hr/>
  
 # Problem / Motivation
 For the most part, the Jenkins GUI is constructed on the server side from [Jelly] files ([Stapler] etc). Client-side
@@ -74,7 +76,9 @@ The following slides attempt to bring you through `jenkins-js-modules` in some m
     <a href="https://docs.google.com/presentation/d/1M8sf5zuPgf7osR2Q7wfbkgVs7Es93rYAJTbtwiGfI7E/pub?start=false&loop=false&delayms=10000" target="_blank">
         <img src="img/about.png" alt="About Jenkins Modules">
     </a>
-</p>  
+</p>
+
+> Also check out the <a href="FAQs.md">FAQs</a>.
 
 # Support Modules
 
