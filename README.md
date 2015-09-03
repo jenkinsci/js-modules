@@ -15,6 +15,8 @@ __Table of Contents__:
     <a href="#about-jenkins-modules">About Jenkins Modules</a><br/>
     <a href="#support-modules">Support Modules</a><br/>
     <a href="#framework-libs-jenkinscijs-libs">Framework Libs (jenkinsci/js-libs)</a><br/>
+    <a href="FAQ.md">FAQ</a><br/>
+    <a href="#planned-improvements">Planned Improvements</a><br/>
 </ul>    
 </p>
  
@@ -98,6 +100,10 @@ browser load and helping to avoid the bundle bloat problem.
 We have already created Framework lib bundles for a number of common JavaScript libs (jQuery, Bootstrap and more).
 
 > __[Framework libs are located in jenkinsci/js-libs](https://github.com/jenkinsci/js-libs)__.
+
+# Planned Improvements
+
+- [ ] [Consolidate method to add library dependencies](https://github.com/tfennelly/jenkins-js-modules/issues/1).
 
 [NPM]: https://www.npmjs.com/
 [CommonJS]: http://www.commonjs.org/
