@@ -7,6 +7,7 @@
     <a href="#couldnt-i-just-use-gulp-and-browserify">Couldn't I just use Gulp and Browserify?</a><br/>
     <a href="#what-does-module-loading-mean">What does "module loading" mean?</a><br/>
     <a href="#why-not-use-requirejsamd-or-es6-modules-for-modulebundle-loading">Why not use RequireJS/AMD or ES6 modules for module/bundle loading?</a><br/>
+    <a href="#how-do-i-create-a-bundle">How do I create a bundle?</a><br/>    
 </p>
 
 <hr/>
@@ -69,3 +70,6 @@ We went with the [Browserify] + `jenkins-js-modules` approach for a few reasons:
 [node.js]: https://nodejs.org/en/
 [Keep Calm]: https://github.com/tfennelly/jenkins-js-modules#keep-calm
 [Framework libs]: https://github.com/tfennelly/jenkins-js-modules#framework-libs-jenkinscijs-libs
+
+### How do I create a bundle?
+See [jenkins-js-builder](https://github.com/tfennelly/jenkins-js-builder).
