@@ -71,6 +71,9 @@ The following [NPM] packages are designed to aid the use and adoption of `jenkin
 * [jenkins-js-test]: See this package for details on how to test modules for module bundles for `jenkins-js-modules`. This package's functionality is indirectly available via [jenkins-js-builder].
 
 # Framework Libs (jenkinsci/js-libs)
+
+> __[Framework libs are located in jenkinsci/js-libs](https://github.com/jenkinsci/js-libs)__.
+
 As stated earlier, using [CommonJS] style modularity makes it possible to more easily leverage the growing set of publicly available
 [NPM]/[node.js] packages. If you want to use some really cool [NPM] package that you just found, all you need to do is follow the
 "standard" [NPM] package installation process, adding it to your "app" bundle e.g. `npm install --save cool-new-lib`.
