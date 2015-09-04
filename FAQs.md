@@ -5,6 +5,7 @@
     <a href="#what-is-the-difference-between-a-module-and-a-bundle">What is the difference between a "module" and a "bundle"?</a><br/>
     <a href="#do-we-really-need-bundles">Do we really need bundles?</a><br/>
     <a href="#couldnt-i-just-use-gulp-and-browserify">Couldn't I just use Gulp and Browserify?</a><br/>
+    <a href="#what-does-module-loading-mean">What does "module loading" mean?</a><br/>
     <a href="#why-not-use-requirejsamd-or-es6-modules-for-modulebundle-loading">Why not use RequireJS/AMD or ES6 modules for module/bundle loading?</a><br/>
 </p>
 
@@ -52,12 +53,9 @@ Two __module loading__ patterns are "relevant" here:
 ### Why not use RequireJS/AMD or ES6 modules for module/bundle loading?
 One could debate the pros and cons of different module loading systems ad nauseam.
   
-Lets clarify something first. There are 2 module loading patterns "relevant" here:
-  
-1. __Intra__-bundle module loading. The loading of [CommonJS] style modules within a bundle e.g. module `A` loading module `B`, where both modules are within the __same__ bundle.
-1. __Inter__-bundle module loading. The loading of [CommonJS] style modules across bundle "boundaries" e.g. module `A` loading module `B`, where both modules are in __different__ bundles.
-
-> Also see <a href="#do-we-really-need-bundles">__Do we really need bundles?__</a>.
+> Read these first:
+> - <a href="#do-we-really-need-bundles">__Do we really need bundles?__</a>
+> - <a href="#what-does-module-loading-mean">What does "module loading" mean?</a>
 
 We went with the [Browserify] + `jenkins-js-modules` approach for a few reasons:
 
