@@ -11,7 +11,7 @@ __Table of Contents__:
 <p>
 <ul>
     <a href="#problem--motivation">Problem / Motivation</a><br/>
-    <a href="#keep-calm">Keep Calm</a><br/>
+    <a href="#do-i-really-need-to-learn-all-this-new-stuff">Do I really need to learn all this "new" stuff?</a><br/>
     <a href="#about-jenkins-modules">About Jenkins Modules</a><br/>
     <a href="#support-modules">Support Modules</a><br/>
     <a href="#framework-libs-jenkinscijs-libs">Framework Libs (jenkinsci/js-libs)</a><br/>
@@ -48,25 +48,8 @@ Using [CommonJS] style modularity also makes it possible to __more easily levera
 
 > __What do we mean by "evolvable"?__: `jenkins-js-modules` makes it possible to safely run multiple versions of core JavaScript Framework libs on the same page (jQuery, Bootstrap etc). This makes it possible for modular code (built on `jenkins-js-modules`) to depend on an explicit version of a JS lib that is guaranteed to remain available on e.g. plugin upgrades. Conversely, the same modular code can upgrade the version of a lib it depends on without effecting other modular code that still depends on an older version.
 
-# Keep Calm
-One concern that has been raised about new JavaScript approaches that might involve new technologies (new to the 
-Jenkins tool-chain) is the fear that it would add to the learning curve for new and existing Jenkins plugin
-developers. We added this section to this README specifically to alleviate that concern.
-
-<p align="center">
-    <img src="img/keep_calm.png" alt="KEEP CALM - THIS IS OPTIONAL">
-</p>
-
-The use of `jenkins-js-modules` for plugin GUI development is __totally optional__! If you want to continue developing
-your plugin's GUI using the same technologies you've always used (Jelly etc), then that is not a problem. You can
-happily ignore everything here; nothing new is being forced on anyone!
-
-`jenkins-js-modules` is designed to help where the maintainer is interested in using "newer" JavaScript technologies
-to build a richer plugin GUI that has more maintainable JavaScript code (more modular, better unit testing etc) that
-can be more easily evolved over time (can safely move to newer versions of "Framework" libraries such as jQuery etc).
- 
-Again, if none of this interests you at the moment, then that is not a problem. You can continue building your plugin
-GUI using the same techniques and technologies as before (server-side, Jelly etc).
+# Do I really need to learn all this "new" stuff?
+No, this is totally optional. [See FAQ](https://github.com/tfennelly/jenkins-js-modules/blob/master/FAQs.md#do-i-really-need-to-learn-all-this-new-stuff)  
   
 # About Jenkins Modules
 

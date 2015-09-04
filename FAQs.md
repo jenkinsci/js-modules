@@ -13,7 +13,24 @@
 <hr/>
 
 ### Do I really need to learn all this "new" stuff?
-No, this is all totally optional. Please read [Keep Calm].
+One concern that has been raised about new JavaScript approaches that might involve new technologies (new to the 
+Jenkins tool-chain) is the fear that it would add to the learning curve for new and existing Jenkins plugin
+developers. We added this section to this README specifically to alleviate that concern.
+
+<p align="center">
+    <img src="img/keep_calm.png" alt="KEEP CALM - THIS IS OPTIONAL">
+</p>
+
+The use of `jenkins-js-modules` for plugin GUI development is __totally optional__! If you want to continue developing
+your plugin's GUI using the same technologies you've always used (Jelly etc), then that is not a problem. You can
+happily ignore everything here; nothing new is being forced on anyone!
+
+`jenkins-js-modules` is designed to help where the maintainer is interested in using "newer" JavaScript technologies
+to build a richer plugin GUI that has more maintainable JavaScript code (more modular, better unit testing etc) that
+can be more easily evolved over time (can safely move to newer versions of "Framework" libraries such as jQuery etc).
+ 
+Again, if none of this interests you at the moment, then that is not a problem. You can continue building your plugin
+GUI using the same techniques and technologies as before (server-side, Jelly etc).
 
 ### What is the difference between a "module" and a "bundle"?
 A "bundle" is a single JavaScript file that contains 1 or more [CommonJS] "modules". We use [Browserify] to handle the creation of these bundles. It
