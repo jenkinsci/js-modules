@@ -54,8 +54,8 @@ Two __module loading__ patterns are "relevant" here:
 One could debate the pros and cons of different module loading systems ad nauseam.
   
 > Read these first:
-> <a href="#do-we-really-need-bundles">Do we really need bundles?</a>
-> <a href="#what-does-module-loading-mean">What does "module loading" mean?</a>
+>   <a href="#do-we-really-need-bundles">Do we really need bundles?</a>
+>   <a href="#what-does-module-loading-mean">What does "module loading" mean?</a>
 
 We went with the [Browserify] + `jenkins-js-modules` approach for a few reasons:
 
