@@ -48,14 +48,14 @@ Two __module loading__ patterns are "relevant" here:
 1. __Intra__-bundle module loading. The loading of [CommonJS] style modules within a bundle e.g. module `A` loading module `B`, where both modules are within the __same__ bundle.
 1. __Inter__-bundle module loading. The loading of [CommonJS] style modules across bundle "boundaries" e.g. module `A` loading module `B`, where both modules are in __different__ bundles.
 
-> Also see <a href="#do-we-really-need-bundles">__Do we really need bundles?__</a>.
+> Also see <a href="#do-we-really-need-bundles">Do we really need bundles?</a>.
 
 ### Why not use RequireJS/AMD or ES6 modules for module/bundle loading?
 One could debate the pros and cons of different module loading systems ad nauseam.
   
 > Read these first:
-> - <a href="#do-we-really-need-bundles">__Do we really need bundles?__</a>
-> - <a href="#what-does-module-loading-mean">What does "module loading" mean?</a>
+> <a href="#do-we-really-need-bundles">Do we really need bundles?</a>
+> <a href="#what-does-module-loading-mean">What does "module loading" mean?</a>
 
 We went with the [Browserify] + `jenkins-js-modules` approach for a few reasons:
 
