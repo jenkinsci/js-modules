@@ -167,6 +167,26 @@ exports.addModuleCSSToPage = function(pluginName, moduleName, onError) {
 };
 
 /**
+ * Add a plugin CSS file to the browser page.
+ * 
+ * @param pluginName The Jenkins plugin in which the module resides.
+ * @param moduleName The name of the module. 
+ * @param onError On error callback;
+ */
+exports.addPluginCSSToPage = function(pluginName, cssPath, onError) {
+    internal.onReady(function() {
+        try {
+            internal.addPluginCSSToPage(pluginName, cssPath);
+        } catch (e) {
+            console.error(e);
+            if (onError) {
+                onError(e);
+            }
+        }
+    });
+};
+
+/**
  * Set the module registration timeout i.e. the length of time to wait for a module to load before failing.
  *
  * @param timeout Millisecond duration before onRegister times out. Defaults to 10000 (10s) if not specified.

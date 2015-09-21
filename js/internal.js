@@ -215,7 +215,16 @@ exports.notifyModuleExported = function(moduleSpec, moduleExports) {
 
 exports.addModuleCSSToPage = function(pluginName, moduleName) {
     var cssElId = exports.toPluginModuleId(pluginName, moduleName) + ':css';
+    exports.addPluginCSSToPage(pluginName, 'jsmodules/' + moduleName + '/style.css', cssElId);
+};
+
+exports.addPluginCSSToPage = function(pluginName, cssPath, cssElId) {
     var document = windowHandle.getWindow().document;
+    
+    if (!cssElId) {
+        cssElId = 'jenkins-plugin:' + pluginName + ':' + ':css:' + cssPath;
+    }
+    
     var cssEl = document.getElementById(cssElId);
     
     if (cssEl) {
@@ -223,7 +232,7 @@ exports.addModuleCSSToPage = function(pluginName, moduleName) {
         return;
     }
 
-    var cssPath = exports.getJSModulesDir(pluginName) + '/' + moduleName + '/style.css';
+    var cssPath = exports.getPluginPath(pluginName) + '/' + cssPath;
     var docHead = exports.getHeadElement();
     cssEl = createElement('link');
     cssEl.setAttribute('id', cssElId);
@@ -260,7 +269,11 @@ exports.toPluginModuleSrc = function(pluginName, moduleName) {
 };
 
 exports.getJSModulesDir = function(pluginName) {
-    return getRootURL() + '/plugin/' + pluginName + '/jsmodules';
+    return exports.getPluginPath(pluginName) + '/jsmodules';
+};
+
+exports.getPluginPath = function(pluginName) {
+    return getRootURL() + '/plugin/' + pluginName;
 };
 
 exports.getHeadElement = function() {

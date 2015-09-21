@@ -333,6 +333,24 @@ describe("index.js", function () {
             done();
         });
     });
+    
+    it("- test addPluginCSSToPage", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var internal = require("../js/internal");
+            var document = require('window-handle').getWindow().document;
+
+            var cssEl = document.getElementById('jenkins-plugin:pluginA::css:css/mathUtils.css');            
+            expect(cssEl).toBe(null);
+            
+            jenkins.addPluginCSSToPage('pluginA', 'css/mathUtils.css');
+            cssEl = document.getElementById('jenkins-plugin:pluginA::css:css/mathUtils.css');
+            expect(cssEl).toBeDefined();
+            expect(cssEl.getAttribute('href')).toBe('/jenkins/plugin/pluginA/css/mathUtils.css');
+            
+            done();
+        });
+    });
 
     it("- test rootURL/resURL not defined", function (done) {
         testUtil.onJenkinsPage(function() {
