@@ -165,13 +165,14 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
         if (moduleSpec.pluginName) {
             var scriptId = exports.toPluginModuleId(moduleSpec.pluginName, moduleSpec.moduleName) + ':js';
             var scriptSrc = exports.toPluginModuleSrc(moduleSpec.pluginName, moduleSpec.moduleName);
-            exports.addScript(scriptId, scriptSrc);
+            exports.addScript(scriptSrc, scriptId);
         }
     }
 };
 
-exports.addScript = function(scriptId, scriptSrc) {
+exports.addScript = function(scriptSrc, config) {
     var document = windowHandle.getWindow().document;
+    var scriptId = getScriptId(scriptSrc, config);
     var script = document.getElementById(scriptId);
 
     if (script) {
@@ -316,6 +317,16 @@ exports.getModule = function(moduleSpec) {
         var globals = exports.getGlobalModules();
         return globals[moduleSpec.moduleName];
     }
+}
+
+function getScriptId(scriptSrc, config) {
+    if (typeof config === 'string') {
+        return config;
+    } else if (typeof config === 'object' && config.scriptId) {
+        return config.scriptId;
+    } else {
+        return 'jenkins-script:' + scriptSrc;
+    }    
 }
 
 function getRootURL() {

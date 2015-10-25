@@ -269,7 +269,7 @@ describe("index.js", function () {
 
             expect(jsEl).toBe(null);
             
-            jsEl = internal.addScript(scriptId, 'path/to/script.js')
+            jsEl = internal.addScript('path/to/script.js', scriptId);
             expect(jsEl).toBeDefined();
             expect(jsEl.getAttribute('src')).toBe('path/to/script.js');
             
@@ -277,7 +277,7 @@ describe("index.js", function () {
             // because the existing <script> doesn't have a 'data-replaceable="true"'
             // attribute.
             
-            var jsEl2 = internal.addScript(scriptId, 'path/to/script.js')
+            var jsEl2 = internal.addScript('path/to/script.js', scriptId);
             expect(jsEl2).not.toBeDefined();
             
             done();
@@ -293,7 +293,7 @@ describe("index.js", function () {
             var jsEl = document.getElementById(scriptId);
 
             expect(jsEl).toBe(null);
-            jsEl = internal.addScript(scriptId, 'path/to/script.js')
+            jsEl = internal.addScript('path/to/script.js', {scriptId: scriptId}); // use an config object
             expect(jsEl).toBeDefined();
             expect(jsEl.parentNode).toBe(internal.getHeadElement());
             
@@ -304,7 +304,7 @@ describe("index.js", function () {
             // work because the existing <script> has a 'data-replaceable="true"'
             // attribute.
             
-            var jsEl2 = internal.addScript(scriptId, 'path/to/script.js')
+            var jsEl2 = internal.addScript('path/to/script.js', {scriptId: scriptId}); // use an config object
             expect(jsEl2).toBeDefined(); // addScript worked?
             expect(jsEl2).not.toBe(jsEl); // and it's not the original of the same id?
             
