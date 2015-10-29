@@ -187,6 +187,27 @@ exports.addPluginCSSToPage = function(pluginName, cssPath, onError) {
 };
 
 /**
+ * Add a javascript &lt;script&gt; element to the document &lt;head&gt;.
+ * <p/>
+ * Options:
+ * <ul>
+ *     <li><strong>scriptId</strong>: The script Id to use for the element. If not specified, one will be generated from the scriptSrc.</li>
+ *     <li><strong>async</strong>: Asynchronous loading of the script. Default is 'true'.</li>
+ *     <li><strong>success</strong>: An optional onload success function for the script element.</li>
+ *     <li><strong>error</strong>: An optional onload error function for the script element. This is called if the .js file exists but there's an error evaluating the script. It is NOT called if the .js file doesn't exist (ala 404).</li>
+ *     <li><strong>removeElementOnLoad</strong>: Remove the script element after loading the script. Default is 'false'.</li>
+ * </ul>
+ * 
+ * @param scriptSrc The script src.
+ * @param options Optional script load options object. See above.
+ */
+exports.addScript = function(scriptSrc, options) {
+    internal.onReady(function() {
+        internal.addScript(scriptSrc, options);
+    });    
+};
+
+/**
  * Set the module registration timeout i.e. the length of time to wait for a module to load before failing.
  *
  * @param timeout Millisecond duration before onRegister times out. Defaults to 10000 (10s) if not specified.

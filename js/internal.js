@@ -165,15 +165,41 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
         if (moduleSpec.pluginName) {
             var scriptId = exports.toPluginModuleId(moduleSpec.pluginName, moduleSpec.moduleName) + ':js';
             var scriptSrc = exports.toPluginModuleSrc(moduleSpec.pluginName, moduleSpec.moduleName);
-            exports.addScript(scriptSrc, scriptId);
+            exports.addScript(scriptSrc, {
+                scriptId: scriptId,
+                scriptSrcBase: ''
+            });
         }
     }
 };
 
-exports.addScript = function(scriptSrc, config) {
+exports.addScript = function(scriptSrc, options) {
+    if (!scriptSrc) {
+        console.warn('Call to addScript with undefined "scriptSrc" arg.');
+        return;
+    }    
+    
+    var normalizedOptions;
+    
+    // If there's no options object, create it.
+    if (typeof options === 'object') {
+        normalizedOptions = options;
+    } else {
+        normalizedOptions = {};
+    }
+    normalizedOptions.scriptId = getScriptId(scriptSrc, options);
+    
+    // set some default options
+    if (normalizedOptions.async === undefined) {
+        normalizedOptions.async = true;
+    }
+    if (normalizedOptions.scriptSrcBase === undefined) {
+        normalizedOptions.scriptSrcBase = getRootURL() + '/';
+    }
+
     var document = windowHandle.getWindow().document;
-    var scriptId = getScriptId(scriptSrc, config);
-    var script = document.getElementById(scriptId);
+    var head = exports.getHeadElement();
+    var script = document.getElementById(normalizedOptions.scriptId);
 
     if (script) {
         var replaceable = script.getAttribute('data-replaceable');
@@ -188,14 +214,44 @@ exports.addScript = function(scriptSrc, config) {
         }
     }
 
-    var docHead = exports.getHeadElement();
-
     script = createElement('script');
-    script.setAttribute('id', scriptId);
+
+    // Parts of the following onload code were inspired by how the ACE editor does it,
+    // as well as from the follow SO post: http://stackoverflow.com/a/4845802/1166986
+    var onload = function (_, isAborted) {
+        script.setAttribute('data-onload-complete', true);
+        try {
+            if (isAborted) {
+                console.warn('Script load aborted: ' + scriptSrc);
+            } else if (!script.readyState || script.readyState === "loaded" || script.readyState === "complete") {
+                // If the options contains an onload function, call it.
+                if (typeof normalizedOptions.success === 'function') {
+                    normalizedOptions.success(script);
+                }
+                return;
+            }
+            if (typeof normalizedOptions.error === 'function') {
+                normalizedOptions.error(script, isAborted);
+            }
+        } finally {
+            if (normalizedOptions.removeElementOnLoad) {
+                head.removeChild(script);
+            }
+            // Handle memory leak in IE
+            script = script.onload = script.onreadystatechange = null;
+        }
+    };
+    script.onload = onload; 
+    script.onreadystatechange = onload;
+
+    script.setAttribute('id', normalizedOptions.scriptId);
     script.setAttribute('type', 'text/javascript');
-    script.setAttribute('src', scriptSrc);
-    script.setAttribute('async', 'true');
-    docHead.appendChild(script);
+    script.setAttribute('src', normalizedOptions.scriptSrcBase + scriptSrc);
+    if (normalizedOptions.async) {
+        script.setAttribute('async', normalizedOptions.async);
+    }
+    
+    head.appendChild(script);
     
     return script;
 };
