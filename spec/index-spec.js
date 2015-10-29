@@ -271,7 +271,7 @@ describe("index.js", function () {
             
             jsEl = internal.addScript('path/to/script.js', scriptId);
             expect(jsEl).toBeDefined();
-            expect(jsEl.getAttribute('src')).toBe('path/to/script.js');
+            expect(jsEl.getAttribute('src')).toBe('/jenkins/path/to/script.js');
             
             // Trying to add another <script> of the same id should fail
             // because the existing <script> doesn't have a 'data-replaceable="true"'
