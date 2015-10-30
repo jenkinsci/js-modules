@@ -187,6 +187,26 @@ exports.addScript = function(scriptSrc, options) {
     } else {
         normalizedOptions = {};
     }
+    
+    // May want to transform/map some urls.
+    if (normalizedOptions.scriptSrcMap) {
+        if (typeof normalizedOptions.scriptSrcMap === 'function') {
+            scriptSrc = normalizedOptions.scriptSrcMap(scriptSrc);
+        } else if (Array.isArray(normalizedOptions.scriptSrcMap)) {
+            // it's an array of suffix mappings
+            for (var i = 0; i < normalizedOptions.scriptSrcMap.length; i++) {
+                var mapping = normalizedOptions.scriptSrcMap[i];
+                if (mapping.from && mapping.to) {
+                    if (endsWith(scriptSrc, mapping.from)) {
+                        normalizedOptions.originalScriptSrc = scriptSrc;
+                        scriptSrc = scriptSrc.replace(mapping.from, mapping.to);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
     normalizedOptions.scriptId = getScriptId(scriptSrc, options);
     
     // set some default options
@@ -247,6 +267,9 @@ exports.addScript = function(scriptSrc, options) {
     script.setAttribute('id', normalizedOptions.scriptId);
     script.setAttribute('type', 'text/javascript');
     script.setAttribute('src', normalizedOptions.scriptSrcBase + scriptSrc);
+    if (normalizedOptions.originalScriptSrc) {
+        script.setAttribute('data-referrer', normalizedOptions.originalScriptSrc);        
+    }
     if (normalizedOptions.async) {
         script.setAttribute('async', normalizedOptions.async);
     }
@@ -428,4 +451,8 @@ function getLoadingModule(moduleNamespace, moduleName) {
         moduleNamespace.loadingModules[moduleName] = {};
     }
     return moduleNamespace.loadingModules[moduleName];
+}
+
+function endsWith(string, suffix) {
+    return (string.indexOf(suffix, string.length - suffix.length) !== -1);
 }

@@ -316,6 +316,28 @@ describe("index.js", function () {
         });
     });
     
+    it("- test addScript with URL mapping/transform", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var internal = require("../js/internal");
+            var document = require('window-handle').getWindow().document;
+
+            var scriptId = 'adjunct:path/to/script.js';
+            var jsEl = document.getElementById(scriptId);
+
+            expect(jsEl).toBe(null);
+            jsEl = internal.addScript('path/to/script.js', {
+                scriptId: scriptId,
+                scriptSrcMap: [
+                    {from: 'to/script.js', to: 'to/some/other/script.js'}
+                ]
+            });
+            expect(jsEl).toBeDefined();
+            expect(jsEl.getAttribute('src')).toBe('/jenkins/path/to/some/other/script.js');
+            
+            done();
+        });
+    });
+    
     it("- test addModuleCSSToPage", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
