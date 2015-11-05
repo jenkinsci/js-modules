@@ -54,7 +54,7 @@ describe("index.js", function () {
             var scriptEl = document.getElementById(moduleId);            
             
             expect(scriptEl).toBeDefined();
-            expect(scriptEl.getAttribute('src')).toBe('/jenkins/plugin/pluginA/jsmodules/mathUtils.js');
+            expect(scriptEl.getAttribute('src')).toBe('/jenkins/assets/plugin/pluginA/mathUtils.js');
                         
             // Now mimic registering of the plugin module. In real Jenkins land, this would happen
             // async. The call to "require" would trigger the plugin js to be loaded
@@ -350,7 +350,7 @@ describe("index.js", function () {
             jenkins.addModuleCSSToPage('pluginA', 'mathUtils');
             cssEl = document.getElementById(internal.toPluginModuleId('pluginA', 'mathUtils') + ':css');
             expect(cssEl).toBeDefined();
-            expect(cssEl.getAttribute('href')).toBe('/jenkins/plugin/pluginA/jsmodules/mathUtils/style.css');
+            expect(cssEl.getAttribute('href')).toBe('/jenkins/assets/plugin/pluginA/mathUtils/style.css');
             
             done();
         });
@@ -368,7 +368,7 @@ describe("index.js", function () {
             jenkins.addPluginCSSToPage('pluginA', 'css/mathUtils.css');
             cssEl = document.getElementById('jenkins-plugin:pluginA::css:css/mathUtils.css');
             expect(cssEl).toBeDefined();
-            expect(cssEl.getAttribute('href')).toBe('/jenkins/plugin/pluginA/css/mathUtils.css');
+            expect(cssEl.getAttribute('href')).toBe('/jenkins/assets/plugin/pluginA/css/mathUtils.css');
             
             done();
         });

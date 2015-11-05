@@ -295,7 +295,7 @@ exports.notifyModuleExported = function(moduleSpec, moduleExports) {
 
 exports.addModuleCSSToPage = function(pluginName, moduleName) {
     var cssElId = exports.toPluginModuleId(pluginName, moduleName) + ':css';
-    exports.addPluginCSSToPage(pluginName, 'jsmodules/' + moduleName + '/style.css', cssElId);
+    exports.addPluginCSSToPage(pluginName, moduleName + '/style.css', cssElId);
 };
 
 exports.addPluginCSSToPage = function(pluginName, cssPath, cssElId) {
@@ -349,11 +349,14 @@ exports.toPluginModuleSrc = function(pluginName, moduleName) {
 };
 
 exports.getJSModulesDir = function(pluginName) {
-    return exports.getPluginPath(pluginName) + '/jsmodules';
+    return exports.getPluginPath(pluginName);
 };
 
 exports.getPluginPath = function(pluginName) {
-    return getRootURL() + '/plugin/' + pluginName;
+    if (pluginName=='core')
+        return getRootURL() + '/assets/core';
+    else
+        return getRootURL() + '/assets/plugin/' + pluginName;
 };
 
 exports.getHeadElement = function() {

@@ -147,7 +147,7 @@ exports.export = function(pluginName, moduleName, module, onError) {
  * 
  * <p>
  * The assumption is that the CSS can be accessed at
- * {@code <rootURL>/plugin/<pluginName>/jsmodules/<moduleName>/style.css}
+ * {@code <rootURL>/assets/plugin/<pluginName>/<moduleName>/style.css}
  * 
  * @param pluginName The Jenkins plugin in which the module resides.
  * @param moduleName The name of the module. 
