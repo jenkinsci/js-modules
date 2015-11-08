@@ -22,7 +22,7 @@ describe("index.js", function () {
             jenkins.import('pluginA:mathUtils')
                 .onRejected(function(error) {
                     expect(error.reason).toBe('timeout');
-                    expect(error.detail).toBe("Please verify that the plugin 'pluginA' is installed, and that it registers a module named 'mathUtils'");
+                    expect(error.detail).toBe("Timed out waiting on module 'pluginA:mathUtils' to load.");
                     done();               
                 });
         });
@@ -49,7 +49,7 @@ describe("index.js", function () {
             // Check that the <script> element was added to the <head>
             var internal = require("../js/internal");
             var document = require('window-handle').getWindow().document;
-            var moduleId = internal.toPluginModuleId('pluginA', 'mathUtils') + ':js';
+            var moduleId = internal.toModuleId('pluginA', 'mathUtils') + ':js';
             
             var scriptEl = document.getElementById(moduleId);            
             
@@ -115,7 +115,7 @@ describe("index.js", function () {
                     expect(timeUtils.now().getTime()).toBe(1000000000000);
                     
                     // The mathUtils module should be in the 'global' namespace
-                    var moduleNamespace = internal.getModuleNamespace({pluginName: 'pluginA', moduleName: 'mathUtils'});                    
+                    var moduleNamespace = internal.getModuleNamespace({namespace: 'pluginA', moduleName: 'mathUtils'});
                     expect(moduleNamespace.globalNS).toBe(false);
 
                     done();               
@@ -344,11 +344,11 @@ describe("index.js", function () {
             var internal = require("../js/internal");
             var document = require('window-handle').getWindow().document;
 
-            var cssEl = document.getElementById(internal.toPluginModuleId('pluginA', 'mathUtils') + ':css');            
+            var cssEl = document.getElementById(internal.toModuleId('pluginA', 'mathUtils') + ':css');
             expect(cssEl).toBe(null);
             
             jenkins.addModuleCSSToPage('pluginA', 'mathUtils');
-            cssEl = document.getElementById(internal.toPluginModuleId('pluginA', 'mathUtils') + ':css');
+            cssEl = document.getElementById(internal.toModuleId('pluginA', 'mathUtils') + ':css');
             expect(cssEl).toBeDefined();
             expect(cssEl.getAttribute('href')).toBe('/jenkins/plugin/pluginA/jsmodules/mathUtils/style.css');
             

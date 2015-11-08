@@ -49,28 +49,28 @@ exports.getJenkins = function() {
 };
 
 exports.getModuleNamespace = function(moduleSpec) {
-    if (moduleSpec.pluginName) {
-        return exports.getPlugin(moduleSpec.pluginName);
+    if (moduleSpec.namespace) {
+        return exports.getNamespace(moduleSpec.namespace);
     } else {
         return exports.getGlobalModules();
     }
 }
 
-exports.getPlugin = function(pluginName) {
-    var plugins = exports.getPlugins();
-    var pluginNamespace = plugins[pluginName];
-    if (!pluginNamespace) {
-        pluginNamespace = {
+exports.getNamespace = function(namespaceName) {
+    var namespaces = exports.getNamespaces();
+    var namespace = namespaces[namespaceName];
+    if (!namespace) {
+        namespace = {
             globalNS: false            
         };
-        plugins[pluginName] = pluginNamespace;
+        namespaces[namespaceName] = namespace;
     }
-    return pluginNamespace;
+    return namespace;
 };
 
 exports.import = function(moduleQName, onRegisterTimeout) {
     return promise.make(function (resolve, reject) {
-        // getPlugin etc needs to access the 'window' global. We want to make sure that
+        // Some functions here needs to access the 'window' global. We want to make sure that
         // exists before attempting to fulfill the require operation. It may not exists
         // immediately in a test env.
         exports.onReady(function() {
@@ -82,8 +82,8 @@ exports.import = function(moduleQName, onRegisterTimeout) {
                 resolve(module.exports);
             } else {
                 if (onRegisterTimeout === 0) {
-                    if (moduleSpec.pluginName) {
-                        throw 'Plugin module ' + moduleSpec.pluginName + ':' + moduleSpec.moduleName + ' require failure. Async load mode disabled.';
+                    if (moduleSpec.namespace) {
+                        throw 'Module ' + moduleSpec.namespace + ':' + moduleSpec.moduleName + ' require failure. Async load mode disabled.';
                     } else {
                         throw 'Global module ' + moduleSpec.moduleName + ' require failure. Async load mode disabled.';
                     }
@@ -126,10 +126,8 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
                     var moduleSpec = loadingModule.moduleSpec;
                     var errorDetail;
                     
-                    if (moduleSpec.pluginName) {
-                        errorDetail = "Please verify that the plugin '" +
-                            moduleSpec.pluginName + "' is installed, and that " +
-                            "it registers a module named '" + moduleSpec.moduleName + "'";
+                    if (moduleSpec.namespace) {
+                        errorDetail = "Timed out waiting on module '" + moduleSpec.namespace + ":" + moduleSpec.moduleName + "' to load.";
                     } else {
                         errorDetail = "Timed out waiting on global module '" + moduleSpec.moduleName + "' to load.";
                     }                    
@@ -160,11 +158,11 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
     try {
         return waitForRegistration(loadingModule, onRegisterTimeout);
     } finally {
-        // We can auto/dynamic load modules in a plugin namespace. Global namespace modules
+        // We can auto/dynamic load modules in a non-global namespace. Global namespace modules
         // need to make sure they load themselves (via an adjunct, or whatever).
-        if (moduleSpec.pluginName) {
-            var scriptId = exports.toPluginModuleId(moduleSpec.pluginName, moduleSpec.moduleName) + ':js';
-            var scriptSrc = exports.toPluginModuleSrc(moduleSpec.pluginName, moduleSpec.moduleName);
+        if (moduleSpec.namespace) {
+            var scriptId = exports.toModuleId(moduleSpec.namespace, moduleSpec.moduleName) + ':js';
+            var scriptSrc = exports.toModuleSrc(moduleSpec.namespace, moduleSpec.moduleName);
             exports.addScript(scriptSrc, {
                 scriptId: scriptId,
                 scriptSrcBase: ''
@@ -293,16 +291,16 @@ exports.notifyModuleExported = function(moduleSpec, moduleExports) {
     }    
 };
 
-exports.addModuleCSSToPage = function(pluginName, moduleName) {
-    var cssElId = exports.toPluginModuleId(pluginName, moduleName) + ':css';
-    exports.addPluginCSSToPage(pluginName, 'jsmodules/' + moduleName + '/style.css', cssElId);
+exports.addModuleCSSToPage = function(namespace, moduleName) {
+    var cssElId = exports.toModuleId(namespace, moduleName) + ':css';
+    exports.addPluginCSSToPage(namespace, 'jsmodules/' + moduleName + '/style.css', cssElId);
 };
 
-exports.addPluginCSSToPage = function(pluginName, cssPath, cssElId) {
+exports.addPluginCSSToPage = function(namespace, cssPath, cssElId) {
     var document = windowHandle.getWindow().document;
     
     if (!cssElId) {
-        cssElId = 'jenkins-plugin:' + pluginName + ':' + ':css:' + cssPath;
+        cssElId = 'jenkins-plugin:' + namespace + ':' + ':css:' + cssPath;
     }
     
     var cssEl = document.getElementById(cssElId);
@@ -312,7 +310,7 @@ exports.addPluginCSSToPage = function(pluginName, cssPath, cssElId) {
         return;
     }
 
-    var cssPath = exports.getPluginPath(pluginName) + '/' + cssPath;
+    var cssPath = exports.getPluginPath(namespace) + '/' + cssPath;
     var docHead = exports.getHeadElement();
     cssEl = createElement('link');
     cssEl.setAttribute('id', cssElId);
@@ -332,7 +330,7 @@ exports.getGlobalModules = function() {
     return jenkinsCIGlobal.globals;
 };
 
-exports.getPlugins = function() {
+exports.getNamespaces = function() {
     var jenkinsCIGlobal = exports.getJenkins();
     if (!jenkinsCIGlobal.plugins) {
         jenkinsCIGlobal.plugins = {};
@@ -340,20 +338,20 @@ exports.getPlugins = function() {
     return jenkinsCIGlobal.plugins;
 };
 
-exports.toPluginModuleId = function(pluginName, moduleName) {
-    return 'jenkins-plugin-module:' + pluginName + ':' + moduleName;
+exports.toModuleId = function(namespace, moduleName) {
+    return 'jenkins-js-module:' + namespace + ':' + moduleName;
 };
 
-exports.toPluginModuleSrc = function(pluginName, moduleName) {
-    return exports.getJSModulesDir(pluginName) + '/' + moduleName + '.js';
+exports.toModuleSrc = function(namespace, moduleName) {
+    return exports.getPluginJSModulesPath(namespace) + '/' + moduleName + '.js';
 };
 
-exports.getJSModulesDir = function(pluginName) {
-    return exports.getPluginPath(pluginName) + '/jsmodules';
+exports.getPluginJSModulesPath = function(namespace) {
+    return exports.getPluginPath(namespace) + '/jsmodules';
 };
 
-exports.getPluginPath = function(pluginName) {
-    return getRootURL() + '/plugin/' + pluginName;
+exports.getPluginPath = function(namespace) {
+    return getRootURL() + '/plugin/' + namespace;
 };
 
 exports.getHeadElement = function() {
@@ -376,11 +374,11 @@ exports.parseResourceQName = function(resourceQName) {
     var qNameTokens = resourceQName.split(":");
     if (qNameTokens.length === 2) {
         return {
-            pluginName: qNameTokens[0].trim(),
+            namespace: qNameTokens[0].trim(),
             moduleName: qNameTokens[1].trim()
         };
     } else {
-        // The module/bundle is not in a plugin and doesn't
+        // The module/bundle is not in a namespace and doesn't
         // need to be loaded i.e. it will load itself and export.
         return {
             moduleName: qNameTokens[0].trim()
@@ -389,8 +387,8 @@ exports.parseResourceQName = function(resourceQName) {
 }
 
 exports.getModule = function(moduleSpec) {
-    if (moduleSpec.pluginName) {
-        var plugin = exports.getPlugin(moduleSpec.pluginName);
+    if (moduleSpec.namespace) {
+        var plugin = exports.getNamespace(moduleSpec.namespace);
         return plugin[moduleSpec.moduleName];
     } else {
         var globals = exports.getGlobalModules();

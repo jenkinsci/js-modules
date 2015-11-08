@@ -6,11 +6,10 @@ var onRegisterTimeout;
  * Asynchronously import/require a set of modules.
  *
  * <p>
- * Responsible for triggering the async loading of modules from plugins if
- * a given module is not already loaded.
+ * Responsible for triggering the async loading of modules if a given module is not already loaded.
  *
- * @param moduleQNames... A list of module "qualified" names, each containing the module name prefixed with the Jenkins plugin name
- * separated by a colon i.e. "<pluginName>:<moduleName>" e.g. "jquery:jquery2".
+ * @param moduleQNames... A list of module "qualified" names, each containing the module name prefixed with the namespace
+ * and separated by a colon i.e. "<namespace>:<moduleName>" e.g. "jquery:jquery2".
  *
  * @return A Promise, allowing async load of all modules. The promise is only fulfilled when all modules are loaded.
  */
@@ -28,7 +27,7 @@ exports.import = function() {
     }
     
     if (moduleQNames.length == 0) {
-        throw "No plugin module names specified.";
+        throw "No module names specified.";
     }
     
     return promise.make(function (resolve, reject) {
@@ -81,8 +80,8 @@ exports.import = function() {
  * This function will throw an error if the module is not already loaded via an outer call to 'import'
  * (or 'import').
  *
- * @param moduleQName The module "qualified" name containing the module name prefixed with the Jenkins plugin name
- * separated by a colon i.e. "<pluginName>:<moduleName>" e.g. "jquery:jquery2".
+ * @param moduleQName The module "qualified" name containing the module name prefixed with the namespace
+ * separated by a colon i.e. "<namespace>:<moduleName>" e.g. "jquery:jquery2".
  *
  * @return The module.
  */
@@ -99,22 +98,22 @@ exports.require = function(moduleQName) {
 /**
  * Export a module.
  * 
- * @param pluginName The Jenkins plugin in which the module resides, or "undefined" if the modules is in
+ * @param namespace The namespace in which the module resides, or "undefined" if the modules is in
  * the "global" module namespace e.g. a Jenkins core bundle.
  * @param moduleName The name of the module. 
  * @param module The CommonJS style module, or "undefined" if we just want to notify other modules waiting on
  * the loading of this module.
  * @param onError On error callback;
  */
-exports.export = function(pluginName, moduleName, module, onError) {
+exports.export = function(namespace, moduleName, module, onError) {
     internal.onReady(function() {
         try {
-            var moduleSpec = {pluginName: pluginName, moduleName: moduleName};
+            var moduleSpec = {namespace: namespace, moduleName: moduleName};
             var moduleNamespace = internal.getModuleNamespace(moduleSpec);
             
             if (moduleNamespace[moduleName]) {
-                if (pluginName) {
-                    throw "Jenkins plugin module '" + pluginName + ":" + moduleName + "' already registered.";
+                if (namespace) {
+                    throw "Jenkins plugin module '" + namespace + ":" + moduleName + "' already registered.";
                 } else {
                     throw "Jenkins global module '" + moduleName + "' already registered.";
                 }
@@ -146,17 +145,18 @@ exports.export = function(pluginName, moduleName, module, onError) {
  * Add a module's CSS to the browser page.
  * 
  * <p>
- * The assumption is that the CSS can be accessed at
- * {@code <rootURL>/plugin/<pluginName>/jsmodules/<moduleName>/style.css}
+ * The assumption is that the CSS can be accessed at e.g.
+ * {@code <rootURL>/plugin/<namespace>/jsmodules/<moduleName>/style.css} i.e.
+ * the pluginId acts as the namespace.
  * 
- * @param pluginName The Jenkins plugin in which the module resides.
+ * @param namespace The namespace in which the module resides.
  * @param moduleName The name of the module. 
  * @param onError On error callback;
  */
-exports.addModuleCSSToPage = function(pluginName, moduleName, onError) {
+exports.addModuleCSSToPage = function(namespace, moduleName, onError) {
     internal.onReady(function() {
         try {
-            internal.addModuleCSSToPage(pluginName, moduleName);
+            internal.addModuleCSSToPage(namespace, moduleName);
         } catch (e) {
             console.error(e);
             if (onError) {
