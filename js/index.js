@@ -87,7 +87,7 @@ exports.import = function() {
  * @return The module.
  */
 exports.require = function(moduleQName) {
-    var parsedModuleName = internal.parseModuleQName(moduleQName);
+    var parsedModuleName = internal.parseResourceQName(moduleQName);
     var module = internal.getModule(parsedModuleName);    
     if (!module) {
         throw "Unable to perform synchronous 'require' for module '" + moduleQName + "'. This module is not pre-loaded. " +

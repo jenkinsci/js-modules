@@ -74,7 +74,7 @@ exports.import = function(moduleQName, onRegisterTimeout) {
         // exists before attempting to fulfill the require operation. It may not exists
         // immediately in a test env.
         exports.onReady(function() {
-            var moduleSpec = exports.parseModuleQName(moduleQName);
+            var moduleSpec = exports.parseResourceQName(moduleQName);
             var module = exports.getModule(moduleSpec);
             
             if (module) {
@@ -372,8 +372,8 @@ exports.setRootURL = function(url) {
     jenkinsCIGlobal.rootURL = url;
 };
 
-exports.parseModuleQName = function(moduleQName) {
-    var qNameTokens = moduleQName.split(":");    
+exports.parseResourceQName = function(resourceQName) {
+    var qNameTokens = resourceQName.split(":");
     if (qNameTokens.length === 2) {
         return {
             pluginName: qNameTokens[0].trim(),
