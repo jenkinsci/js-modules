@@ -332,8 +332,15 @@ exports.getGlobalModules = function() {
 
 exports.getNamespaces = function() {
     var jenkinsCIGlobal = exports.getJenkins();
+
+    // The namespaces are stored in an object named "plugins". This is a legacy from the
+    // time when all modules lived in plugins. By right we'd like to rename this, but
+    // that would cause compatibility issues.
+
     if (!jenkinsCIGlobal.plugins) {
-        jenkinsCIGlobal.plugins = {};
+        jenkinsCIGlobal.plugins = {
+            __README__: 'This object holds namespaced JS modules/bundles, with the property names representing the module namespace. It\'s name ("plugins") is a legacy thing. Changing it to a better name (e.g. "namespaces") would cause compatibility issues.'
+        };
     }
     return jenkinsCIGlobal.plugins;
 };
