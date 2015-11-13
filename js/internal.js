@@ -380,14 +380,27 @@ exports.setRootURL = function(url) {
 exports.parseResourceQName = function(resourceQName) {
     var qNameTokens = resourceQName.split(":");
     if (qNameTokens.length === 2) {
+        var namespace = qNameTokens[0].trim();
+        var nsTokens = namespace.split("/");
+        var namespaceProvider = 'plugin';
+        if (nsTokens.length === 2) {
+            namespaceProvider = nsTokens[0].trim();
+            namespace = nsTokens[1].trim();
+            if (namespaceProvider !== 'plugin' && namespaceProvider !== 'core') {
+                console.error('Unsupported module namespace provider "' + namespaceProvider + '". Setting to "plugin".');
+                namespaceProvider = 'plugin';
+            }
+        }
         return {
-            namespace: qNameTokens[0].trim(),
+            nsProvider: namespaceProvider,
+            namespace: namespace,
             moduleName: qNameTokens[1].trim()
         };
     } else {
         // The module/bundle is not in a namespace and doesn't
         // need to be loaded i.e. it will load itself and export.
         return {
+            nsProvider: 'core',
             moduleName: qNameTokens[0].trim()
         };
     }
