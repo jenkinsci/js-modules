@@ -382,13 +382,13 @@ exports.parseResourceQName = function(resourceQName) {
     if (qNameTokens.length === 2) {
         var namespace = qNameTokens[0].trim();
         var nsTokens = namespace.split("/");
-        var namespaceProvider = 'plugin';
+        var namespaceProvider = undefined;
         if (nsTokens.length === 2) {
             namespaceProvider = nsTokens[0].trim();
             namespace = nsTokens[1].trim();
             if (namespaceProvider !== 'plugin' && namespaceProvider !== 'core') {
-                console.error('Unsupported module namespace provider "' + namespaceProvider + '". Setting to "plugin".');
-                namespaceProvider = 'plugin';
+                console.error('Unsupported module namespace provider "' + namespaceProvider + '". Setting to undefined.');
+                namespaceProvider = undefined;
             }
         }
         return {
