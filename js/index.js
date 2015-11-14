@@ -1,6 +1,19 @@
 var internal = require("./internal");
 var promise = require("./promise");
 var onRegisterTimeout;
+var whoami;
+
+/**
+ * What's the top level module/bundle name.
+ * @param moduleQName The module QName.
+ * @returns The module QName, or undefined if unknown.
+ */
+exports.whoami = function(moduleQName) {
+    if (moduleQName) {
+        whoami = moduleQName;
+    }
+    return whoami;
+};
 
 /**
  * Asynchronously import/require a set of modules.
