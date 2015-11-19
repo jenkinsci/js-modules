@@ -393,7 +393,7 @@ exports.parseResourceQName = function(resourceQName) {
         if (nsTokens.length === 2) {
             namespaceProvider = nsTokens[0].trim();
             namespace = nsTokens[1].trim();
-            if (namespaceProvider !== 'plugin' && namespaceProvider !== 'core') {
+            if (namespaceProvider !== 'plugin' && namespaceProvider !== 'core-assets') {
                 console.error('Unsupported module namespace provider "' + namespaceProvider + '". Setting to undefined.');
                 namespaceProvider = undefined;
             }
@@ -407,7 +407,6 @@ exports.parseResourceQName = function(resourceQName) {
         // The module/bundle is not in a namespace and doesn't
         // need to be loaded i.e. it will load itself and export.
         return {
-            nsProvider: 'core',
             moduleName: qNameTokens[0].trim()
         };
     }
