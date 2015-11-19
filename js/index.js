@@ -11,6 +11,7 @@ var whoami;
 exports.whoami = function(moduleQName) {
     if (moduleQName) {
         whoami = moduleQName;
+        internal.whoami(whoami);
     }
     return whoami;
 };

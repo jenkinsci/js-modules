@@ -2,6 +2,13 @@ var promise = require("./promise");
 var windowHandle = require("window-handle");
 var jenkinsCIGlobal;
 var globalInitListeners = [];
+var whoami;
+
+exports.whoami = function(moduleQName) {
+    if (moduleQName) {
+        whoami = exports.parseResourceQName(moduleQName);
+    }
+};
 
 exports.onReady = function(callback) {
     // This allows test based initialization of jenkins-js-modules when there might 
@@ -473,4 +480,14 @@ function getLoadingModule(moduleNamespace, moduleName) {
 
 function endsWith(string, suffix) {
     return (string.indexOf(suffix, string.length - suffix.length) !== -1);
+}
+
+function thisBundleNamespaceProvider() {
+    if (whoami !== undefined) {
+        var myLoading = getLoadingModule(whoami.namespace, whoami.moduleName);
+        if (myLoading && myLoading.moduleSpec) {
+            return myLoading.moduleSpec.nsProvider;
+        }
+    }
+    return undefined;
 }
