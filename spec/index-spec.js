@@ -113,14 +113,20 @@ describe("index.js", function () {
                     // This function should only be called once both modules have been exported
                     expect(mathUtils.add(2,2)).toBe(4);
                     expect(timeUtils.now().getTime()).toBe(1000000000000);
-                    
+
                     // The mathUtils module should be in the 'global' namespace
-                    var moduleNamespace = internal.getModuleNamespace({namespace: 'pluginA', moduleName: 'mathUtils'});
+                    var moduleNamespace = internal.getModuleNamespaceObj({namespace: 'pluginA', moduleName: 'mathUtils'});
                     expect(moduleNamespace.globalNS).toBe(false);
 
-                    done();               
+                    // Check the namespace provider from which the plugins were loaded.
+                    // Should default to the 'plugin' namespace provider i.e. load from
+                    // a plugin namespace.
+                    var mathUtils = internal.getModuleSpec('pluginA:mathUtils');
+                    expect(mathUtils.nsProvider).toBe('plugin');
+
+                    done();
                 }); // timeout before Jasmine does
-            
+
             // Now mimic registering of the plugin modules.
             jenkins.export('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
@@ -132,6 +138,105 @@ describe("index.js", function () {
                     return new Date(1000000000000);
                 }
             });
+        });
+    });
+
+    it("- test import from parent namespace provider", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var internal = require("../js/internal");
+            var document = require('window-handle').getWindow().document;
+            var head = internal.getHeadElement();
+            var script = document.createElement('script');
+
+            // Let's mimic the loading of a bundle like 'bootstrap3' from the 'bootstrap' namespace, which
+            // has a dependency on 'jquery3' from the 'jquery' namespace. We manually add the bootstrap
+            // <script> tags for the test, pretending that 'core-assets' is the namespace provider for the
+            // 'bootstrap' namespace. This should then result in jenkins-js-modules loading 'jquery'
+            // namespace bundles from the 'core-assets' namespace provider.
+            script.setAttribute('data-jenkins-module-nsProvider', 'core-assets');
+            script.setAttribute('data-jenkins-module-namespace', 'bootstrap');
+            script.setAttribute('data-jenkins-module-moduleName', 'bootstrap3');
+            head.appendChild(script);
+
+            jenkins.whoami('bootstrap:bootstrap3');
+            expect(internal.whoami().nsProvider).toBe('core-assets');
+
+            jenkins.import('jquery:jquery2')
+                .onFulfilled(function() {
+                    // 'jquery:jquery2' should have also been loaded from the 'core-assets' namespace
+                    // provider because the parent bundle ('bootstrap3') was loaded from 'core-assets'.
+                    var jquerySpec = internal.getModuleSpec('jquery:jquery2');
+                    expect(jquerySpec.nsProvider).toBe('core-assets');
+
+                    // Let's also do a check on the actual script URL.
+                    var jqueryJsId = internal.toModuleId('jquery', 'jquery2') + ':js';
+                    var jqueryScriptEl = document.getElementById(jqueryJsId);
+                    expect(jqueryScriptEl).toBeDefined();
+                    expect(jqueryScriptEl.getAttribute('src')).toBe('/jenkins/assets/jquery/jsmodules/jquery2.js');
+
+                    // Let's also mimic the loading of the bootstrap3 CSS. It too should get loaded
+                    // via the 'core-assets' namespace provider.
+                    internal.addModuleCSSToPage('bootstrap', 'bootstrap3');
+                    var bootstrapCSSId = internal.toModuleId('bootstrap', 'bootstrap3') + ':css';
+                    var bootstrapCSSEl = document.getElementById(bootstrapCSSId);
+                    expect(bootstrapCSSEl).toBeDefined();
+                    expect(bootstrapCSSEl.getAttribute('href')).toBe('/jenkins/assets/bootstrap/jsmodules/bootstrap3/style.css');
+
+                    // Test require ...
+                    jenkins.require('jquery:jquery2');
+                    // Specifying the namespace provider here should be irrelevant coz
+                    // the bundle/module is already registered. That's the main point here i.e.
+                    // the nsProvider is only of interest IF the module needs to be loaded i.e. it tells
+                    // where to get the module from (the provider). If it's already loaded, then we don't
+                    // care where it was loaded from.
+                    jenkins.require('core-assets/jquery:jquery2');
+                    jenkins.require('plugin/jquery:jquery2');
+
+                    done();
+                });
+
+            // Now mimic registering of the plugin modules.
+            jenkins.export('jquery', 'jquery2', {});
+        });
+    });
+
+    it("- test import from import/QName provided namespace provider", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var internal = require("../js/internal");
+            var document = require('window-handle').getWindow().document;
+
+            // Test import where the nsProvider is specified on the import. This is
+            // slightly different to using the parent's provider namespace
+            jenkins.import('core-assets/jquery:jquery2')
+                .onFulfilled(function() {
+                    // 'jquery:jquery2' should have also been loaded from the 'core-assets' namespace
+                    // provider because the parent bundle ('bootstrap3') was loaded from 'core-assets'.
+                    var jquerySpec = internal.getModuleSpec('jquery:jquery2');
+                    expect(jquerySpec.nsProvider).toBe('core-assets');
+
+                    // Let's also do a check on the actual script URL.
+                    var jqueryJsId = internal.toModuleId('jquery', 'jquery2') + ':js';
+                    var jqueryScriptEl = document.getElementById(jqueryJsId);
+                    expect(jqueryScriptEl).toBeDefined();
+                    expect(jqueryScriptEl.getAttribute('src')).toBe('/jenkins/assets/jquery/jsmodules/jquery2.js');
+
+                    // Test require ...
+                    jenkins.require('jquery:jquery2');
+                    // Specifying the namespace provider here should be irrelevant coz
+                    // the bundle/module is already registered. That's the main point here i.e.
+                    // the nsProvider is only of interest IF the module needs to be loaded i.e. it tells
+                    // where to get the module from (the provider). If it's already loaded, then we don't
+                    // care where it was loaded from.
+                    jenkins.require('core-assets/jquery:jquery2');
+                    jenkins.require('plugin/jquery:jquery2');
+
+                    done();
+                });
+
+            // Now mimic registering of the plugin modules.
+            jenkins.export('jquery', 'jquery2', {});
         });
     });
 
@@ -206,7 +311,7 @@ describe("index.js", function () {
                     expect(timeUtils.now().getTime()).toBe(1000000000000);
                     
                     // The mathUtils module should be in the 'global' namespace
-                    var moduleNamespace = internal.getModuleNamespace({moduleName: 'mathUtils'});                    
+                    var moduleNamespace = internal.getModuleNamespaceObj({moduleName: 'mathUtils'});
                     expect(moduleNamespace.globalNS).toBe(true);
                     
                     done();               
@@ -361,12 +466,13 @@ describe("index.js", function () {
             var jenkins = require("../js/index");
             var internal = require("../js/internal");
             var document = require('window-handle').getWindow().document;
+            var cssId = 'jenkins-js-module:pluginA::css:/jenkins/plugin/pluginA/css/mathUtils.css';
 
-            var cssEl = document.getElementById('jenkins-plugin:pluginA::css:css/mathUtils.css');            
+            var cssEl = document.getElementById(cssId);
             expect(cssEl).toBe(null);
             
             jenkins.addPluginCSSToPage('pluginA', 'css/mathUtils.css');
-            cssEl = document.getElementById('jenkins-plugin:pluginA::css:css/mathUtils.css');
+            cssEl = document.getElementById(cssId);
             expect(cssEl).toBeDefined();
             expect(cssEl.getAttribute('href')).toBe('/jenkins/plugin/pluginA/css/mathUtils.css');
             

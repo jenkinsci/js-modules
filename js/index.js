@@ -123,9 +123,9 @@ exports.export = function(namespace, moduleName, module, onError) {
     internal.onReady(function() {
         try {
             var moduleSpec = {namespace: namespace, moduleName: moduleName};
-            var moduleNamespace = internal.getModuleNamespace(moduleSpec);
+            var moduleNamespaceObj = internal.getModuleNamespaceObj(moduleSpec);
             
-            if (moduleNamespace[moduleName]) {
+            if (moduleNamespaceObj[moduleName]) {
                 if (namespace) {
                     throw "Jenkins plugin module '" + namespace + ":" + moduleName + "' already registered.";
                 } else {
@@ -142,7 +142,7 @@ exports.export = function(namespace, moduleName, module, onError) {
                     exports: module
                 };
             }
-            moduleNamespace[moduleName] = module;
+            moduleNamespaceObj[moduleName] = module;
             
             // Notify all that the module has been registered. See internal.loadModule also.
             internal.notifyModuleExported(moduleSpec, module.exports);

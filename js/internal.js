@@ -7,7 +7,9 @@ var whoami;
 exports.whoami = function(moduleQName) {
     if (moduleQName) {
         whoami = exports.parseResourceQName(moduleQName);
+        whoami.nsProvider = getBundleNSProviderFromScriptElement(whoami.namespace, whoami.moduleName);
     }
+    return whoami;
 };
 
 exports.onReady = function(callback) {
@@ -38,6 +40,7 @@ exports.initJenkinsGlobal = function() {
 
 exports.clearJenkinsGlobal = function() {    
     jenkinsCIGlobal = undefined;
+    whoami = undefined;
 };
 
 exports.getJenkins = function() {
@@ -55,7 +58,7 @@ exports.getJenkins = function() {
     return jenkinsCIGlobal;
 };
 
-exports.getModuleNamespace = function(moduleSpec) {
+exports.getModuleNamespaceObj = function(moduleSpec) {
     if (moduleSpec.namespace) {
         return exports.getNamespace(moduleSpec.namespace);
     } else {
@@ -110,8 +113,8 @@ exports.import = function(moduleQName, onRegisterTimeout) {
 };
 
 exports.loadModule = function(moduleSpec, onRegisterTimeout) {
-    var moduleNamespace = exports.getModuleNamespace(moduleSpec);
-    var module = moduleNamespace[moduleSpec.moduleName];
+    var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
+    var module = moduleNamespaceObj[moduleSpec.moduleName];
     
     if (module) {
         // Module already loaded. This prob shouldn't happen.
@@ -155,7 +158,7 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
         });
     }
     
-    var loadingModule = getLoadingModule(moduleNamespace, moduleSpec.moduleName);
+    var loadingModule = getLoadingModule(moduleNamespaceObj, moduleSpec.moduleName);
     if (!loadingModule.waitList) {
         loadingModule.waitList = [];
     }
@@ -169,11 +172,30 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
         // need to make sure they load themselves (via an adjunct, or whatever).
         if (moduleSpec.namespace) {
             var scriptId = exports.toModuleId(moduleSpec.namespace, moduleSpec.moduleName) + ':js';
-            var scriptSrc = exports.toModuleSrc(moduleSpec.namespace, moduleSpec.moduleName);
-            exports.addScript(scriptSrc, {
+            var scriptSrc = exports.toModuleSrc(moduleSpec, 'js');
+            var scriptEl = exports.addScript(scriptSrc, {
                 scriptId: scriptId,
                 scriptSrcBase: ''
             });
+
+            if (scriptEl) {
+                // Set the module spec info on the <script> element. This allows us to resolve the
+                // nsProvider for that bundle after 'whoami' is called for it (as it loads). whoami
+                // is not called with the nsProvider info on it because a given bundle can
+                // potentially be loaded from multiple different ns providers, so we only resole the provider
+                // at load-time i.e. just after a bundle is loaded it calls 'whoami' for itself
+                // and then this module magically works out where it was loaded from (it's nsProvider)
+                // by locating the <script> element and using this information. For a module/bundle, knowing
+                // where it was loaded from is important because it dictates where that module/bundle
+                // should load it dependencies from. For example, the Bootstrap module/bundle depends on the
+                // jQuery bundle. So, if the bootstrap bundle is loaded from the 'core-assets' namespace provider,
+                // then that means the jQuery bundle should also be loaded from the 'core-assets'
+                // namespace provider.
+                // See getBundleNSProviderFromScriptElement.
+                scriptEl.setAttribute('data-jenkins-module-nsProvider', moduleSpec.nsProvider);
+                scriptEl.setAttribute('data-jenkins-module-namespace', moduleSpec.namespace);
+                scriptEl.setAttribute('data-jenkins-module-moduleName', moduleSpec.moduleName);
+            }
         }
     }
 };
@@ -181,7 +203,7 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
 exports.addScript = function(scriptSrc, options) {
     if (!scriptSrc) {
         console.warn('Call to addScript with undefined "scriptSrc" arg.');
-        return;
+        return undefined;
     }    
     
     var normalizedOptions;
@@ -285,8 +307,8 @@ exports.addScript = function(scriptSrc, options) {
 };
 
 exports.notifyModuleExported = function(moduleSpec, moduleExports) {
-    var moduleNamespace = exports.getModuleNamespace(moduleSpec);
-    var loadingModule = getLoadingModule(moduleNamespace, moduleSpec.moduleName);
+    var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
+    var loadingModule = getLoadingModule(moduleNamespaceObj, moduleSpec.moduleName);
     
     loadingModule.loaded = true;
     if (loadingModule.waitList) {
@@ -299,15 +321,22 @@ exports.notifyModuleExported = function(moduleSpec, moduleExports) {
 };
 
 exports.addModuleCSSToPage = function(namespace, moduleName) {
+    var moduleSpec = exports.getModuleSpec(namespace + ':' + moduleName);
     var cssElId = exports.toModuleId(namespace, moduleName) + ':css';
-    exports.addPluginCSSToPage(namespace, 'jsmodules/' + moduleName + '/style.css', cssElId);
+    var cssPath = exports.toModuleSrc(moduleSpec, 'css');
+    return exports.addCSSToPage(namespace, cssPath, cssElId);
 };
 
 exports.addPluginCSSToPage = function(namespace, cssPath, cssElId) {
+    var cssPath = exports.getPluginPath(namespace) + '/' + cssPath;
+    return exports.addCSSToPage(namespace, cssPath, cssElId);
+};
+
+exports.addCSSToPage = function(namespace, cssPath, cssElId) {
     var document = windowHandle.getWindow().document;
     
-    if (!cssElId) {
-        cssElId = 'jenkins-plugin:' + namespace + ':' + ':css:' + cssPath;
+    if (cssElId === undefined) {
+        cssElId = 'jenkins-js-module:' + namespace + ':' + ':css:' + cssPath;
     }
     
     var cssEl = document.getElementById(cssElId);
@@ -317,7 +346,6 @@ exports.addPluginCSSToPage = function(namespace, cssPath, cssElId) {
         return;
     }
 
-    var cssPath = exports.getPluginPath(namespace) + '/' + cssPath;
     var docHead = exports.getHeadElement();
     cssEl = createElement('link');
     cssEl.setAttribute('id', cssElId);
@@ -325,6 +353,8 @@ exports.addPluginCSSToPage = function(namespace, cssPath, cssElId) {
     cssEl.setAttribute('rel', 'stylesheet');
     cssEl.setAttribute('href', cssPath);
     docHead.appendChild(cssEl);
+
+    return cssEl;
 };
 
 exports.getGlobalModules = function() {
@@ -356,16 +386,50 @@ exports.toModuleId = function(namespace, moduleName) {
     return 'jenkins-js-module:' + namespace + ':' + moduleName;
 };
 
-exports.toModuleSrc = function(namespace, moduleName) {
-    return exports.getPluginJSModulesPath(namespace) + '/' + moduleName + '.js';
+exports.toModuleSrc = function(moduleSpec, srcType) {
+    var nsProvider = moduleSpec.nsProvider;
+
+    // If a moduleSpec on a module/bundle import doesn't specify a namespace provider
+    // (i.e. is of the form "a:b" and not "core-assets/a:b"),
+    // then check "this" bundles module spec and see if it was imported from a specific
+    // namespace. If it was (e.g. 'core-assets'), then import from that namespace.
+    if (nsProvider === undefined) {
+        nsProvider = thisBundleNamespaceProvider();
+        if (nsProvider === undefined) {
+            nsProvider = 'plugin';
+        }
+        // Store the nsProvider back onto the moduleSpec.
+        moduleSpec.nsProvider = nsProvider;
+    }
+
+    var srcPath = undefined;
+    if (srcType === 'js') {
+        srcPath = moduleSpec.moduleName + '.js';
+    } else if (srcType === 'css') {
+        srcPath = moduleSpec.moduleName + '/style.css';
+    } else {
+        throw 'Unsupported srcType "'+ srcType + '".';
+    }
+
+    if (nsProvider === 'plugin') {
+        return exports.getPluginJSModulesPath(moduleSpec.namespace) + '/' + srcPath;
+    } if (nsProvider === 'core-assets') {
+        return exports.getCoreAssetsJSModulesPath(moduleSpec.namespace) + '/' + srcPath;
+    } else {
+        throw 'Unsupported namespace provider: ' + nsProvider;
+    }
 };
 
-exports.getPluginJSModulesPath = function(namespace) {
-    return exports.getPluginPath(namespace) + '/jsmodules';
+exports.getPluginJSModulesPath = function(pluginId) {
+    return exports.getPluginPath(pluginId) + '/jsmodules';
 };
 
-exports.getPluginPath = function(namespace) {
-    return getRootURL() + '/plugin/' + namespace;
+exports.getCoreAssetsJSModulesPath = function(namespace) {
+    return getRootURL() + '/assets/' + namespace + '/jsmodules';
+};
+
+exports.getPluginPath = function(pluginId) {
+    return getRootURL() + '/plugin/' + pluginId;
 };
 
 exports.getHeadElement = function() {
@@ -410,7 +474,7 @@ exports.parseResourceQName = function(resourceQName) {
             moduleName: qNameTokens[0].trim()
         };
     }
-}
+};
 
 exports.getModule = function(moduleSpec) {
     if (moduleSpec.namespace) {
@@ -420,7 +484,19 @@ exports.getModule = function(moduleSpec) {
         var globals = exports.getGlobalModules();
         return globals[moduleSpec.moduleName];
     }
-}
+};
+
+exports.getModuleSpec = function(moduleQName) {
+    var moduleSpec = exports.parseResourceQName(moduleQName);
+    var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
+    if (moduleNamespaceObj) {
+        var loading = getLoadingModule(moduleNamespaceObj, moduleSpec.moduleName);
+        if (loading && loading.moduleSpec) {
+            return loading.moduleSpec;
+        }
+    }
+    return moduleSpec;
+};
 
 function getScriptId(scriptSrc, config) {
     if (typeof config === 'string') {
@@ -467,14 +543,14 @@ function getAttribute(element, attributeName) {
     }    
 }
 
-function getLoadingModule(moduleNamespace, moduleName) {
-    if (!moduleNamespace.loadingModules) {
-        moduleNamespace.loadingModules = {};
+function getLoadingModule(moduleNamespaceObj, moduleName) {
+    if (!moduleNamespaceObj.loadingModules) {
+        moduleNamespaceObj.loadingModules = {};
     }
-    if (!moduleNamespace.loadingModules[moduleName]) {
-        moduleNamespace.loadingModules[moduleName] = {};
+    if (!moduleNamespaceObj.loadingModules[moduleName]) {
+        moduleNamespaceObj.loadingModules[moduleName] = {};
     }
-    return moduleNamespace.loadingModules[moduleName];
+    return moduleNamespaceObj.loadingModules[moduleName];
 }
 
 function endsWith(string, suffix) {
@@ -483,10 +559,24 @@ function endsWith(string, suffix) {
 
 function thisBundleNamespaceProvider() {
     if (whoami !== undefined) {
-        var myLoading = getLoadingModule(whoami.namespace, whoami.moduleName);
-        if (myLoading && myLoading.moduleSpec) {
-            return myLoading.moduleSpec.nsProvider;
+        return whoami.nsProvider;
+    }
+    return undefined;
+}
+
+function getBundleNSProviderFromScriptElement(namespace, moduleName) {
+    var docHead = exports.getHeadElement();
+    var scripts = docHead.getElementsByTagName("script");
+
+    for (var i = 0; i < scripts.length; i++) {
+        var script = scripts[i];
+        var elNamespace = script.getAttribute('data-jenkins-module-namespace');
+        var elModuleName = script.getAttribute('data-jenkins-module-moduleName');
+
+        if (elNamespace === namespace && elModuleName === moduleName) {
+            return script.getAttribute('data-jenkins-module-nsProvider');
         }
     }
+
     return undefined;
 }
