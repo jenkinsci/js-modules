@@ -82,11 +82,12 @@ We went with the [Browserify] + `jenkins-js-modules` approach for a few reasons:
 1. Using RequireJS to perform the loading of the [Browserify] generated bundles is something we considered (and experimented with). A number of problems were encountered here, but the main one (that seems insurmountable) was the fact that [Browserify] and RequireJS have difficulty living alongside each other on the same page due to the fact that RequireJS defines a `require` function in the global scope.
 1. We felt that using a simple name-based module loader (ala `jenkins-js-modules` - "does a module of this name exist, yes/no?" - no funky module path resolution algorithms etc) for inter-bundle module loading would be less likely to result in strange unforeseen things happening.
 
+### How do I create a bundle?
+See [jenkins-js-builder].
+
 [Browserify]: http://browserify.org/
 [CommonJS]: http://www.commonjs.org/
 [node.js]: https://nodejs.org/en/
-[Keep Calm]: https://github.com/tfennelly/jenkins-js-modules#keep-calm
-[Framework libs]: https://github.com/tfennelly/jenkins-js-modules#framework-libs-jenkinscijs-libs
-
-### How do I create a bundle?
-See [jenkins-js-builder](https://github.com/tfennelly/jenkins-js-builder).
+[Keep Calm]: https://github.com/jenkinsci/js-modules#keep-calm
+[Framework libs]: https://github.com/jenkinsci/js-modules#framework-libs-jenkinscijs-libs
+[jenkins-js-builder]: https://github.com/jenkinsci/js-builder

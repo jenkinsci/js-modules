@@ -11,11 +11,11 @@ __Table of Contents__:
 <p>
 <ul>
     <a href="#problem--motivation">Problem / Motivation</a><br/>
-    <a href="https://github.com/tfennelly/jenkins-js-modules/blob/master/FAQs.md#do-i-really-need-to-learn-all-this-new-stuff">Do I really need to learn all this "new" stuff?</a><br/>
+    <a href="https://github.com/jenkinsci/js-modules/blob/master/FAQs.md#do-i-really-need-to-learn-all-this-new-stuff">Do I really need to learn all this "new" stuff?</a><br/>
     <a href="#about-jenkins-modules">About Jenkins Modules</a><br/>
     <a href="#support-modules">Support Modules</a><br/>
     <a href="#framework-libs-jenkinscijs-libs">Framework Libs (jenkinsci/js-libs)</a><br/>
-    <a href="https://github.com/tfennelly/jenkins-js-modules/issues">Enhancement/Issue Tracking</a><br/>
+    <a href="https://github.com/jenkinsci/js-modules/issues">Enhancement/Issue Tracking</a><br/>
     <a href="FAQs.md">FAQs</a><br/>
 </ul>    
 </p>
@@ -49,7 +49,7 @@ Using [CommonJS] style modularity also makes it possible to __more easily levera
 > __What do we mean by "evolvable"?__: `jenkins-js-modules` makes it possible to safely run multiple versions of core JavaScript Framework libs on the same page (jQuery, Bootstrap etc). This makes it possible for modular code (built on `jenkins-js-modules`) to depend on an explicit version of a JS lib that is guaranteed to remain available on e.g. plugin upgrades. Conversely, the same modular code can upgrade the version of a lib it depends on without effecting other modular code that still depends on an older version.
 
 # Do I need to learn all this "new" stuff?
-No, this is totally optional. [See FAQ](https://github.com/tfennelly/jenkins-js-modules/blob/master/FAQs.md#do-i-really-need-to-learn-all-this-new-stuff)  
+No, this is totally optional. [See FAQ](https://github.com/jenkinsci/js-modules/blob/master/FAQs.md#do-i-really-need-to-learn-all-this-new-stuff)  
   
 # About Jenkins Modules
 
@@ -98,5 +98,5 @@ We have already created Framework lib bundles for a number of common JavaScript 
 [Stapler]: http://stapler.kohsuke.org/
 [jquery-detached]: https://github.com/tfennelly/jquery-detached
 [jqueryui-detached]: https://github.com/tfennelly/jqueryui-detached
-[jenkins-js-builder]: https://github.com/tfennelly/jenkins-js-builder
-[jenkins-js-test]: https://github.com/tfennelly/jenkins-js-test
+[jenkins-js-builder]: https://github.com/jenkinsci/js-builder
+[jenkins-js-test]: https://github.com/jenkinsci/js-test
