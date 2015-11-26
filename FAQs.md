@@ -61,12 +61,22 @@ that only contain the "app" JS modules i.e. no framework libs. The framework lib
 See [Framework libs].
 
 ### What does "module loading" mean?
-Two __module loading__ patterns are "relevant" here:
+`jenkins-js-modules` is a "module bundle" loader.
+
+> <a href="#what-is-the-difference-between-a-module-and-a-bundle">What is the difference between a "module" and a "bundle"?</a>.
+> <a href="#do-we-really-need-bundles">Do we really need bundles?</a>.
+
+Two __module loading__ patterns are "relevant" with `jenkins-js-modules`:
   
 1. __Intra__-bundle module loading. The loading of [CommonJS] style modules within a bundle e.g. module `A` loading module `B`, where both modules are within the __same__ bundle.
 1. __Inter__-bundle module loading. The loading of [CommonJS] style modules across bundle "boundaries" e.g. module `A` loading module `B`, where both modules are in __different__ bundles.
 
-> Also see <a href="#do-we-really-need-bundles">Do we really need bundles?</a>.
+[Browserify] handles `#1` nicely, but it doesn't really handle `#2` in a way that works nicely for Jenkins. This is why `jenkins-js-modules`
+exists. Of course, one could just build self contained bundles using [Gulp] and [Browserify] (and so stick with `#1`), but that's not
+a scalable solution (see link below).
+
+> <a href="#couldnt-i-just-use-gulp-and-browserify">Couldn't I just use Gulp and Browserify?</a>
+> <a href="#why-not-use-requirejsamd-or-es6-modules-for-modulebundle-loading">Why not use RequireJS/AMD or ES6 modules for module/bundle loading?</a>
 
 ### Why not use RequireJS/AMD or ES6 modules for module/bundle loading?
 One could debate the pros and cons of different module loading systems ad nauseam.
@@ -86,6 +96,7 @@ We went with the [Browserify] + `jenkins-js-modules` approach for a few reasons:
 See [jenkins-js-builder].
 
 [Browserify]: http://browserify.org/
+[Gulp]: http://gulpjs.com/
 [CommonJS]: http://www.commonjs.org/
 [node.js]: https://nodejs.org/en/
 [Keep Calm]: https://github.com/jenkinsci/js-modules#keep-calm
