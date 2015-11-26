@@ -1,6 +1,6 @@
 This is a JavaScript "module bundle" loader for Jenkins ([NPM] package) i.e. a loader for loading a JavaScript file that contains one or more
 [CommonJS]/[node.js] style modules in a single HTTP request (i.e. a "bundle"). For more, see the
-<a href="https://github.com/jenkinsci/js-modules/blob/master/FAQs.md#what-does-module-loading-mean">What does "module loading" mean?</a> FAQ.
+<a href="https://github.com/jenkinsci/js-modules/blob/master/FAQs.md#what-does-module-loading-mean">What does "module loading" mean</a> FAQ.
  
 Install Package:
 
