@@ -15,6 +15,7 @@ __Table of Contents__:
     <a href="#problem--motivation">Problem / Motivation</a><br/>
     <a href="https://github.com/jenkinsci/js-modules/blob/master/FAQs.md#do-i-really-need-to-learn-all-this-new-stuff">Do I really need to learn all this "new" stuff?</a><br/>
     <a href="#about-jenkins-modules">About Jenkins Modules</a><br/>
+    <a href="https://github.com/jenkinsci/js-samples">Building Jenkins Plugins to use Modularized JavaScript</a><br/>
     <a href="#support-modules">Support Modules</a><br/>
     <a href="#framework-libs-jenkinscijs-libs">Framework Libs (jenkinsci/js-libs)</a><br/>
     <a href="https://github.com/jenkinsci/js-modules/issues">Enhancement/Issue Tracking</a><br/>
