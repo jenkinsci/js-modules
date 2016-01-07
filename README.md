@@ -1,3 +1,5 @@
+> __[JIRA](https://issues.jenkins-ci.org/browse/JENKINS/component/21132)__
+
 This is a JavaScript "module bundle" loader for Jenkins ([NPM] package) i.e. a loader for loading a JavaScript file that contains one or more
 [CommonJS]/[node.js] style modules in a single HTTP request (i.e. a "bundle").
 
