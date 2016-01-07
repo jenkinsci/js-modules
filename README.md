@@ -1,4 +1,4 @@
-> __[JIRA](https://issues.jenkins-ci.org/browse/JENKINS/component/21132)__
+> __[JIRA](https://issues.jenkins-ci.org/browse/JENKINS/component/21133)__
 
 This is a JavaScript "module bundle" loader for Jenkins ([NPM] package) i.e. a loader for loading a JavaScript file that contains one or more
 [CommonJS]/[node.js] style modules in a single HTTP request (i.e. a "bundle").
@@ -22,6 +22,7 @@ __Table of Contents__:
     <a href="#framework-libs-jenkinscijs-libs">Framework Libs (jenkinsci/js-libs)</a><br/>
     <a href="https://github.com/jenkinsci/js-modules/issues">Enhancement/Issue Tracking</a><br/>
     <a href="FAQs.md">FAQs</a><br/>
+    <a href="https://issues.jenkins-ci.org/browse/JENKINS/component/21133">JIRA</a><br/>
 </ul>    
 </p>
 
