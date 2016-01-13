@@ -336,7 +336,7 @@ exports.addCSSToPage = function(namespace, cssPath, cssElId) {
     var document = windowHandle.getWindow().document;
     
     if (cssElId === undefined) {
-        cssElId = 'jenkins-js-module:' + namespace + ':' + ':css:' + cssPath;
+        cssElId = 'jenkins-js-module:' + namespace + ':css:' + cssPath;
     }
     
     var cssEl = document.getElementById(cssElId);
@@ -497,6 +497,8 @@ exports.getModuleSpec = function(moduleQName) {
     }
     return moduleSpec;
 };
+
+exports.getRootURL = getRootURL;
 
 function getScriptId(scriptSrc, config) {
     if (typeof config === 'string') {

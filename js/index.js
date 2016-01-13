@@ -184,13 +184,32 @@ exports.addModuleCSSToPage = function(namespace, moduleName, onError) {
  * Add a plugin CSS file to the browser page.
  * 
  * @param pluginName The Jenkins plugin in which the module resides.
- * @param moduleName The name of the module. 
+ * @param cssPath The CSS path. 
  * @param onError On error callback;
  */
 exports.addPluginCSSToPage = function(pluginName, cssPath, onError) {
     internal.onReady(function() {
         try {
             internal.addPluginCSSToPage(pluginName, cssPath);
+        } catch (e) {
+            console.error(e);
+            if (onError) {
+                onError(e);
+            }
+        }
+    });
+};
+
+/**
+ * Add CSS file to the browser page.
+ * 
+ * @param cssPath The CSS path. 
+ * @param onError On error callback;
+ */
+exports.addCSSToPage = function(cssPath, onError) {
+    internal.onReady(function() {
+        try {           
+            internal.addCSSToPage('global', internal.getRootURL() + '/' + cssPath);
         } catch (e) {
             console.error(e);
             if (onError) {

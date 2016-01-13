@@ -466,7 +466,7 @@ describe("index.js", function () {
             var jenkins = require("../js/index");
             var internal = require("../js/internal");
             var document = require('window-handle').getWindow().document;
-            var cssId = 'jenkins-js-module:pluginA::css:/jenkins/plugin/pluginA/css/mathUtils.css';
+            var cssId = 'jenkins-js-module:pluginA:css:/jenkins/plugin/pluginA/css/mathUtils.css';
 
             var cssEl = document.getElementById(cssId);
             expect(cssEl).toBe(null);
@@ -475,6 +475,24 @@ describe("index.js", function () {
             cssEl = document.getElementById(cssId);
             expect(cssEl).toBeDefined();
             expect(cssEl.getAttribute('href')).toBe('/jenkins/plugin/pluginA/css/mathUtils.css');
+            
+            done();
+        });
+    });
+    
+    it("- test addCSSToPage", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var document = require('window-handle').getWindow().document;
+            var cssId = 'jenkins-js-module:global:css:/jenkins/css/mathUtils.css';
+
+            var cssEl = document.getElementById(cssId);
+            expect(cssEl).toBe(null);
+            
+            jenkins.addCSSToPage('css/mathUtils.css');
+            cssEl = document.getElementById(cssId);
+            expect(cssEl).toBeDefined();
+            expect(cssEl.getAttribute('href')).toBe('/jenkins/css/mathUtils.css');
             
             done();
         });
