@@ -516,10 +516,14 @@ function getRootURL() {
     }
     
     var docHead = exports.getHeadElement();
-    var resURL = getAttribute(docHead, "resURL");
+    var resURL = getAttribute(docHead, "data-resurl");
 
     if (!resURL) {
-        throw "Attribute 'resURL' not defined on the document <head> element.";
+        var resURL = getAttribute(docHead, "resURL");
+    
+        if (!resURL) {
+            throw "Attribute 'data-resurl' not defined on the document <head> element.";
+        }
     }
 
     if (jenkinsCIGlobal) {
