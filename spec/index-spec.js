@@ -443,6 +443,26 @@ describe("index.js", function () {
         });
     });
     
+    it("- test addScript (adjunct)", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var internal = require("../js/internal");
+            var document = require('window-handle').getWindow().document;
+
+            var scriptId = 'adjunct:path/to/script.js';
+            var jsEl = document.getElementById(scriptId);
+
+            expect(jsEl).toBe(null);
+            jsEl = internal.addScript('path/to/script.js', {
+                scriptId: scriptId,
+                scriptSrcBase: '@adjunct'
+            });
+            expect(jsEl).toBeDefined();
+            expect(jsEl.getAttribute('src')).toBe('/jenkins/adjuncts/be297f05/path/to/script.js');
+            
+            done();
+        }, '<html><head data-adjuncturl="/jenkins/adjuncts/be297f05"></head></html>');
+    });
+    
     it("- test addModuleCSSToPage", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");

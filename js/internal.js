@@ -241,7 +241,13 @@ exports.addScript = function(scriptSrc, options) {
         normalizedOptions.async = true;
     }
     if (normalizedOptions.scriptSrcBase === undefined) {
+        normalizedOptions.scriptSrcBase = '@root';
+    }
+    
+    if (normalizedOptions.scriptSrcBase === '@root') {
         normalizedOptions.scriptSrcBase = getRootURL() + '/';
+    } else if (normalizedOptions.scriptSrcBase === '@adjunct') {
+        normalizedOptions.scriptSrcBase = getAdjunctURL() + '/';
     }
 
     var document = windowHandle.getWindow().document;
@@ -531,6 +537,25 @@ function getRootURL() {
     }
     
     return resURL;
+}
+
+function getAdjunctURL() {
+    if (jenkinsCIGlobal && jenkinsCIGlobal.adjunctURL) {
+        return jenkinsCIGlobal.adjunctURL;
+    }
+    
+    var docHead = exports.getHeadElement();
+    var adjunctURL = getAttribute(docHead, "data-adjuncturl");
+
+    if (!adjunctURL) {
+        throw "Attribute 'data-adjuncturl' not defined on the document <head> element.";
+    }
+
+    if (jenkinsCIGlobal) {
+        jenkinsCIGlobal.adjunctURL = adjunctURL;
+    }
+    
+    return adjunctURL;
 }
 
 function createElement(name) {
