@@ -504,8 +504,6 @@ exports.getModuleSpec = function(moduleQName) {
     return moduleSpec;
 };
 
-exports.getRootURL = getRootURL;
-
 function getScriptId(scriptSrc, config) {
     if (typeof config === 'string') {
         return config;
@@ -516,6 +514,7 @@ function getScriptId(scriptSrc, config) {
     }    
 }
 
+exports.getRootURL = getRootURL;
 function getRootURL() {
     if (jenkinsCIGlobal && jenkinsCIGlobal.rootURL) {
         return jenkinsCIGlobal.rootURL;
@@ -539,6 +538,7 @@ function getRootURL() {
     return resURL;
 }
 
+exports.getAdjunctURL = getAdjunctURL;
 function getAdjunctURL() {
     if (jenkinsCIGlobal && jenkinsCIGlobal.adjunctURL) {
         return jenkinsCIGlobal.adjunctURL;
