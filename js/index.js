@@ -258,6 +258,9 @@ exports.setRootURL = function(rootUrl) {
     internal.setRootURL(rootUrl);
 };
 
+exports.getRootURL = internal.getRootURL;
+exports.getAdjunctURL = internal.getAdjunctURL;
+
 /**
  * Manually initialise the Jenkins Global.
  * <p>
