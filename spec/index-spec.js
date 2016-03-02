@@ -152,7 +152,7 @@ describe("index.js", function () {
             // Let's mimic the loading of a bundle like 'bootstrap3' from the 'bootstrap' namespace, which
             // has a dependency on 'jquery3' from the 'jquery' namespace. We manually add the bootstrap
             // <script> tags for the test, pretending that 'core-assets' is the namespace provider for the
-            // 'bootstrap' namespace. This should then result in jenkins-js-modules loading 'jquery'
+            // 'bootstrap' namespace. This should then result in js-modules loading 'jquery'
             // namespace bundles from the 'core-assets' namespace provider.
             script.setAttribute('data-jenkins-module-nsProvider', 'core-assets');
             script.setAttribute('data-jenkins-module-namespace', 'bootstrap');

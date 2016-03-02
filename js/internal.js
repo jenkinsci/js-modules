@@ -13,7 +13,7 @@ exports.whoami = function(moduleQName) {
 };
 
 exports.onReady = function(callback) {
-    // This allows test based initialization of jenkins-js-modules when there might 
+    // This allows test based initialization of js-modules when there might 
     // not yet be a global window object.
     if (jenkinsCIGlobal) {
         callback();

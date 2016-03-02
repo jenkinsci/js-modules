@@ -21,11 +21,11 @@ developers. We added this section to this README specifically to alleviate that 
     <img src="img/keep_calm.png" alt="KEEP CALM - THIS IS OPTIONAL">
 </p>
 
-The use of `jenkins-js-modules` for plugin GUI development is __totally optional__! If you want to continue developing
+The use of `js-modules` for plugin GUI development is __totally optional__! If you want to continue developing
 your plugin's GUI using the same technologies you've always used (Jelly etc), then that is not a problem. You can
 happily ignore everything here; nothing new is being forced on anyone!
 
-`jenkins-js-modules` is designed to help where the maintainer is interested in using "newer" JavaScript technologies
+`js-modules` is designed to help where the maintainer is interested in using "newer" JavaScript technologies
 to build a richer plugin GUI that has more maintainable JavaScript code (more modular, better unit testing etc) that
 can be more easily evolved over time (can safely move to newer versions of "Framework" libraries such as jQuery etc).
  
@@ -48,31 +48,31 @@ individually.
 
 ### Couldn't I just use Gulp and Browserify?
 Yes, you could build modularized JS (and use it in your plugin) using Gulp and Browserify only. In fact, that was what
-we did before creating `jenkins-js-modules`.
+we did before creating `js-modules`.
 
 However, the problem with that approach is that it means every app bundle will contain all the code for every JS 
 Framework lib it depends on. That might not seem like a problem when a page has just one of these "apps", but if it has
 multiple "apps" from different plugins, all using jQuery (and maybe some other libs e.g. Bootstrap), then you have a
 situation where all of these libraries are being loaded multiple times. This is something we would like to avoid.
 
-One of the main things that `jenkins-js-modules` is trying provide is the ability to create slimmed down "app" bundles
+One of the main things that `js-modules` is trying provide is the ability to create slimmed down "app" bundles
 that only contain the "app" JS modules i.e. no framework libs. The framework libs are bundled separately
 (in their own bundles) and "linked" into "app" bundles that need them via the `export` / `import` mechanism.
 See [Framework libs].
 
 ### What does "module loading" mean?
-`jenkins-js-modules` is a "module bundle" loader.
+`js-modules` is a "module bundle" loader.
 
 > Read:
 > - <a href="#what-is-the-difference-between-a-module-and-a-bundle">What is the difference between a "module" and a "bundle"?</a>.
 > - <a href="#do-we-really-need-bundles">Do we really need bundles?</a>.
 
-Two __module loading__ patterns are "relevant" with `jenkins-js-modules`:
+Two __module loading__ patterns are "relevant" with `js-modules`:
   
 1. __Intra__-bundle module loading. The loading of [CommonJS] style modules within a bundle e.g. module `A` loading module `B`, where both modules are within the __same__ bundle.
 1. __Inter__-bundle module loading. The loading of [CommonJS] style modules across bundle "boundaries" e.g. module `A` loading module `B`, where both modules are in __different__ bundles.
 
-[Browserify] handles `#1` nicely, but it doesn't really handle `#2` in a way that works nicely for Jenkins. This is why `jenkins-js-modules`
+[Browserify] handles `#1` nicely, but it doesn't really handle `#2` in a way that works nicely for Jenkins. This is why `js-modules`
 exists. Of course, one could just build self contained bundles using [Gulp] and [Browserify] (and so stick with `#1`), but that's not
 a scalable solution (see link below).
 
@@ -87,12 +87,12 @@ One could debate the pros and cons of different module loading systems ad nausea
 > - <a href="#do-we-really-need-bundles">Do we really need bundles?</a>
 > - <a href="#what-does-module-loading-mean">What does "module loading" mean?</a>
 
-We went with the [Browserify] + `jenkins-js-modules` approach for a few reasons:
+We went with the [Browserify] + `js-modules` approach for a few reasons:
 
 1. [Browserify] lets us use [CommonJS] style modules in browser code i.e. synchronous `require` of modules for intra-bundle module loading. Asynchronous module loading patterns (ala Require/AMD) is something we wanted to avoid as we were not fans of the async AMD loading patterns involved (anonymous callbacks etc).
 1. [Browserify] lets us bundle all the [CommonJS] modules for an "app" into a single JavaScript file, allowing them all to be loaded in a single request Vs loading each module to the browser one at a time ala RequireJS.
 1. Using RequireJS to perform the loading of the [Browserify] generated bundles is something we considered (and experimented with). A number of problems were encountered here, but the main one (that seems insurmountable) was the fact that [Browserify] and RequireJS have difficulty living alongside each other on the same page due to the fact that RequireJS defines a `require` function in the global scope.
-1. We felt that using a simple name-based module loader (ala `jenkins-js-modules` - "does a module of this name exist, yes/no?" - no funky module path resolution algorithms etc) for inter-bundle module loading would be less likely to result in strange unforeseen things happening.
+1. We felt that using a simple name-based module loader (ala `js-modules` - "does a module of this name exist, yes/no?" - no funky module path resolution algorithms etc) for inter-bundle module loading would be less likely to result in strange unforeseen things happening.
 
 ### How do I create a bundle?
 See [jenkins-js-builder].
