@@ -37,13 +37,23 @@ describe("internal.js", function () {
     it("- test toModuleSrc", function () {
         var internal = require("../js/internal");
         
+        // from adjuncts
         var b = internal.parseResourceQName('b');
         var bJs = internal.toModuleSrc(b, 'js');
         expect(bJs).toBe('/jenkins/adjuncts/xxx/org/jenkins/ui/jsmodules/b.js');
-
         var ab = internal.parseResourceQName('a:b');
         var abJs = internal.toModuleSrc(ab, 'js');
         expect(abJs).toBe('/jenkins/adjuncts/xxx/org/jenkins/ui/jsmodules/a/b.js');
+
+        // from plugin
+        ab = internal.parseResourceQName('plugin/a:b');
+        abJs = internal.toModuleSrc(ab, 'js');
+        expect(abJs).toBe('/jenkins/plugin/a/jsmodules/b.js');
+
+        // from core assets
+        ab = internal.parseResourceQName('core-assets/a:b');
+        abJs = internal.toModuleSrc(ab, 'js');
+        expect(abJs).toBe('/jenkins/assets/a/jsmodules/b.js');
     });
     
 });
