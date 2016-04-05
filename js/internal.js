@@ -521,21 +521,17 @@ function getRootURL() {
     }
     
     var docHead = exports.getHeadElement();
-    var resURL = getAttribute(docHead, "data-resurl");
+    var rootURL = getAttribute(docHead, "data-rooturl");
 
-    if (!resURL) {
-        var resURL = getAttribute(docHead, "resURL");
-    
-        if (!resURL) {
-            throw "Attribute 'data-resurl' not defined on the document <head> element.";
-        }
+    if (!rootURL) {
+        throw "Attribute 'data-rooturl' not defined on the document <head> element.";
     }
 
     if (jenkinsCIGlobal) {
-        jenkinsCIGlobal.rootURL = resURL;
+        jenkinsCIGlobal.rootURL = rootURL;
     }
     
-    return resURL;
+    return rootURL;
 }
 
 exports.getAdjunctURL = getAdjunctURL;

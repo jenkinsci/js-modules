@@ -6,7 +6,7 @@ var jsdom = require("jsdom");
 
 exports.onJenkinsPage = function(testFunc, content) {
     if (!content) {
-        content = '<html><head resURL="/jenkins"></head><body><div></div></body></html>';
+        content = '<html><head data-rooturl="/jenkins" data-adjuncturl="/jenkins/adjuncts/xxx" data-resurl="/jenkins/static/xxx"></head><body><div></div></body></html>';
     }
     jsdom.env(content, [],
         function (errors, window) {

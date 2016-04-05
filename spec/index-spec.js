@@ -526,7 +526,7 @@ describe("index.js", function () {
                     return lhs + rhs;
                 }
             }, function (e) {
-                expect(e).toBe("Attribute 'data-resurl' not defined on the document <head> element.");
+                expect(e).toBe("Attribute 'data-rooturl' not defined on the document <head> element.");
                 done();
             });
         }, '<html><head></head></html>');
@@ -535,7 +535,7 @@ describe("index.js", function () {
     it("- test rootURL/resURL defined", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
-            jenkins.setRootURL('/jenkins')
+            jenkins.setRootURL('/jenkins');
             jenkins.export('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
@@ -544,18 +544,5 @@ describe("index.js", function () {
             jenkins.require('pluginA:mathUtils');
             done();
         }, '<html><head></head></html>');
-    });
-
-    it("- test rootURL/resURL defined by data-resurl", function (done) {
-        testUtil.onJenkinsPage(function() {
-            var jenkins = require("../js/index");
-            jenkins.export('pluginA', 'mathUtils', {
-                add: function(lhs, rhs) {
-                    return lhs + rhs;
-                }
-            });
-            jenkins.require('pluginA:mathUtils');
-            done();
-        }, '<html><head data-resurl="/jenkins"></head></html>');
     });
 });
