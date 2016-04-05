@@ -402,7 +402,7 @@ exports.toModuleSrc = function(moduleSpec, srcType) {
     if (nsProvider === undefined) {
         nsProvider = thisBundleNamespaceProvider();
         if (nsProvider === undefined) {
-            nsProvider = 'plugin';
+            nsProvider = 'adjuncts';
         }
         // Store the nsProvider back onto the moduleSpec.
         moduleSpec.nsProvider = nsProvider;
@@ -417,13 +417,20 @@ exports.toModuleSrc = function(moduleSpec, srcType) {
         throw 'Unsupported srcType "'+ srcType + '".';
     }
 
-    if (nsProvider === 'plugin') {
+    
+    if (nsProvider === 'adjuncts') {
+        return exports.getAdjunctJSModulesPath(moduleSpec.namespace) + '/' + srcPath;
+    } else if (nsProvider === 'plugin') {
         return exports.getPluginJSModulesPath(moduleSpec.namespace) + '/' + srcPath;
-    } if (nsProvider === 'core-assets') {
+    } else if (nsProvider === 'core-assets') {
         return exports.getCoreAssetsJSModulesPath(moduleSpec.namespace) + '/' + srcPath;
     } else {
         throw 'Unsupported namespace provider: ' + nsProvider;
     }
+};
+
+exports.getAdjunctJSModulesPath = function(namespace) {
+    return getAdjunctURL() + '/org/jenkins/ui/jsmodules/' + namespace;
 };
 
 exports.getPluginJSModulesPath = function(pluginId) {

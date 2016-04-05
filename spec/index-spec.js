@@ -54,7 +54,7 @@ describe("index.js", function () {
             var scriptEl = document.getElementById(moduleId);            
             
             expect(scriptEl).toBeDefined();
-            expect(scriptEl.getAttribute('src')).toBe('/jenkins/plugin/pluginA/jsmodules/mathUtils.js');
+            expect(scriptEl.getAttribute('src')).toBe('/jenkins/adjuncts/xxx/org/jenkins/ui/jsmodules/pluginA/mathUtils.js');
                         
             // Now mimic registering of the plugin module. In real Jenkins land, this would happen
             // async. The call to "require" would trigger the plugin js to be loaded
@@ -122,7 +122,7 @@ describe("index.js", function () {
                     // Should default to the 'plugin' namespace provider i.e. load from
                     // a plugin namespace.
                     var mathUtils = internal.getModuleSpec('pluginA:mathUtils');
-                    expect(mathUtils.nsProvider).toBe('plugin');
+                    expect(mathUtils.nsProvider).toBe('adjuncts');
 
                     done();
                 }); // timeout before Jasmine does
@@ -475,7 +475,7 @@ describe("index.js", function () {
             jenkins.addModuleCSSToPage('pluginA', 'mathUtils');
             cssEl = document.getElementById(internal.toModuleId('pluginA', 'mathUtils') + ':css');
             expect(cssEl).toBeDefined();
-            expect(cssEl.getAttribute('href')).toBe('/jenkins/plugin/pluginA/jsmodules/mathUtils/style.css');
+            expect(cssEl.getAttribute('href')).toBe('/jenkins/adjuncts/xxx/org/jenkins/ui/jsmodules/pluginA/mathUtils/style.css');
             
             done();
         });
