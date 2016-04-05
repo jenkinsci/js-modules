@@ -417,7 +417,6 @@ exports.toModuleSrc = function(moduleSpec, srcType) {
         throw 'Unsupported srcType "'+ srcType + '".';
     }
 
-    
     if (nsProvider === 'adjuncts') {
         return exports.getAdjunctJSModulesPath(moduleSpec.namespace) + '/' + srcPath;
     } else if (nsProvider === 'plugin') {
@@ -430,7 +429,11 @@ exports.toModuleSrc = function(moduleSpec, srcType) {
 };
 
 exports.getAdjunctJSModulesPath = function(namespace) {
-    return getAdjunctURL() + '/org/jenkins/ui/jsmodules/' + namespace;
+    if (namespace) {
+        return getAdjunctURL() + '/org/jenkins/ui/jsmodules/' + namespace;
+    } else {
+        return getAdjunctURL() + '/org/jenkins/ui/jsmodules';
+    }
 };
 
 exports.getPluginJSModulesPath = function(pluginId) {

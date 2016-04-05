@@ -33,4 +33,17 @@ describe("internal.js", function () {
         // unsupported nsProvider should switch to 'plugin'
         assertQNameOK(internal.parseResourceQName('xyz/a:b'), {nsProvider: undefined, namespace: 'a', moduleName: 'b'});
     });
+
+    it("- test toModuleSrc", function () {
+        var internal = require("../js/internal");
+        
+        var b = internal.parseResourceQName('b');
+        var bJs = internal.toModuleSrc(b, 'js');
+        expect(bJs).toBe('/jenkins/adjuncts/xxx/org/jenkins/ui/jsmodules/b.js');
+
+        var ab = internal.parseResourceQName('a:b');
+        var abJs = internal.toModuleSrc(ab, 'js');
+        expect(abJs).toBe('/jenkins/adjuncts/xxx/org/jenkins/ui/jsmodules/a/b.js');
+    });
+    
 });
