@@ -127,10 +127,11 @@ exports.export = function(namespace, moduleName, module, onError) {
             
             if (moduleNamespaceObj[moduleName]) {
                 if (namespace) {
-                    throw "Jenkins plugin module '" + namespace + ":" + moduleName + "' already registered.";
+                    console.debug("Jenkins plugin module '" + namespace + ":" + moduleName + "' already registered.");
                 } else {
-                    throw "Jenkins global module '" + moduleName + "' already registered.";
+                    console.debug("Jenkins global module '" + moduleName + "' already registered.");
                 }
+                return;
             }
             
             if (!module) {
