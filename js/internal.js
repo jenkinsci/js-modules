@@ -533,7 +533,7 @@ function getRootURL() {
     var docHead = exports.getHeadElement();
     var rootURL = getAttribute(docHead, "data-rooturl");
 
-    if (!rootURL) {
+    if (rootURL === undefined || rootURL === null) {
         throw "Attribute 'data-rooturl' not defined on the document <head> element.";
     }
 
@@ -553,7 +553,7 @@ function getAdjunctURL() {
     var docHead = exports.getHeadElement();
     var adjunctURL = getAttribute(docHead, "data-adjuncturl");
 
-    if (!adjunctURL) {
+    if (adjunctURL === undefined || adjunctURL === null) {
         throw "Attribute 'data-adjuncturl' not defined on the document <head> element.";
     }
 

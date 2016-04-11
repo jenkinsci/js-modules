@@ -532,6 +532,22 @@ describe("index.js", function () {
         }, '<html><head></head></html>');
     });
 
+    it("- test data-rooturl empty", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            expect(jenkins.getRootURL()).toBe("");
+            done();
+        }, '<html><head data-rooturl=""></head></html>');
+    });
+
+    it("- test data-adjuncturl empty", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            expect(jenkins.getAdjunctURL()).toBe("");
+            done();
+        }, '<html><head data-adjuncturl=""></head></html>');
+    });
+
     it("- test rootURL/resURL defined", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
