@@ -1,10 +1,11 @@
 {
   "name": "@jenkins-cd/js-modules",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Jenkins CI JavaScript module bundle loader",
   "main": "js/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "./prepublish.sh"
   },
   "author": "Tom Fennelly <tom.fennelly@gmail.com> (https://github.com/tfennelly)",
   "license": "MIT",
