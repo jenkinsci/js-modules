@@ -534,7 +534,11 @@ function getRootURL() {
     var rootURL = getAttribute(docHead, "data-rooturl");
 
     if (rootURL === undefined || rootURL === null) {
-        throw "Attribute 'data-rooturl' not defined on the document <head> element.";
+        // Backward compatibility - used to use a 'resurl' attribute.
+        rootURL = getAttribute(docHead, "resurl");
+        if (rootURL === undefined || rootURL === null) {
+            throw "Attribute 'data-rooturl' not defined on the document <head> element.";
+        }
     }
 
     if (jenkinsCIGlobal) {
