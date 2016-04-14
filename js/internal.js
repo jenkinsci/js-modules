@@ -558,7 +558,15 @@ function getAdjunctURL() {
     var adjunctURL = getAttribute(docHead, "data-adjuncturl");
 
     if (adjunctURL === undefined || adjunctURL === null) {
-        throw "Attribute 'data-adjuncturl' not defined on the document <head> element.";
+        // Backward compatibility - older Jenkins do not have the adjunct url on the
+        // <head> element. Lets try getting the resurl (older jenkins) and patching it 
+        // to be an adjunct url.
+        adjunctURL = getAttribute(docHead, "resurl");
+        if (adjunctURL === undefined || adjunctURL === null) {
+            throw "Attribute 'data-adjuncturl' not defined on the document <head> element.";
+        }
+        // Replace the first occurrence of 'static/' with 'adjuncts/' 
+        adjunctURL = adjunctURL.replace('static\/', 'adjuncts\/');
     }
 
     if (jenkinsCIGlobal) {
