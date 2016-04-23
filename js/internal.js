@@ -338,11 +338,15 @@ exports.addPluginCSSToPage = function(namespace, cssPath, cssElId) {
     return exports.addCSSToPage(namespace, cssPath, cssElId);
 };
 
+exports.toCSSId = function (cssPath, namespace) {
+    return 'jenkins-js-module:' + (namespace || 'global' ) + ':css:' + cssPath;
+};
+
 exports.addCSSToPage = function(namespace, cssPath, cssElId) {
     var document = windowHandle.getWindow().document;
     
     if (cssElId === undefined) {
-        cssElId = 'jenkins-js-module:' + namespace + ':css:' + cssPath;
+        cssElId = exports.toCSSId(cssPath, namespace);
     }
     
     var cssEl = document.getElementById(cssElId);

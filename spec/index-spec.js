@@ -517,6 +517,13 @@ describe("index.js", function () {
             done();
         });
     });
+    
+    it("- test toCSSId", function () {
+        var jenkins = require("../js/index");
+        
+        expect(jenkins.toCSSId('a/b/c.css')).toBe('jenkins-js-module:global:css:a/b/c.css');
+        expect(jenkins.toCSSId('a/b/c.css', 'myns')).toBe('jenkins-js-module:myns:css:a/b/c.css');
+    });
 
     it("- test rootURL/resURL not defined", function (done) {
         testUtil.onJenkinsPage(function() {

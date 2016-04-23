@@ -202,6 +202,15 @@ exports.addPluginCSSToPage = function(pluginName, cssPath, onError) {
 };
 
 /**
+ * Create a js-modules CSS id that can be used to refer to a link element.
+ * @param cssPath The CSS path/url.
+ * @param namespace Optional namespace.
+ */
+exports.toCSSId = function (cssPath, namespace) {
+    return internal.toCSSId(cssPath, namespace);
+};
+
+/**
  * Add CSS file to the browser page.
  * 
  * @param cssPath The CSS path. 
@@ -209,8 +218,12 @@ exports.addPluginCSSToPage = function(pluginName, cssPath, onError) {
  */
 exports.addCSSToPage = function(cssPath, onError) {
     internal.onReady(function() {
-        try {           
-            internal.addCSSToPage('global', internal.getRootURL() + '/' + cssPath);
+        try {
+            if (cssPath.indexOf(internal.getAdjunctURL()) === 0) {
+                internal.addCSSToPage(undefined, cssPath);
+            } else {
+                internal.addCSSToPage(undefined, internal.getRootURL() + '/' + cssPath);
+            }
         } catch (e) {
             console.error(e);
             if (onError) {
