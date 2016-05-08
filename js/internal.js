@@ -323,6 +323,9 @@ exports.notifyModuleExported = function(moduleSpec, moduleExports) {
             clearTimeout(waiter.timeoutObj);
             waiter.resolve(moduleExports);
         }
+        
+        // Now we can flush the waitList, because all waiters have been invoked
+        loadingModule.waitList = [];
     }    
 };
 

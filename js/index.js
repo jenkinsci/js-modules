@@ -131,7 +131,8 @@ exports.export = function(namespace, moduleName, module, onError) {
                 } else {
                     console.debug("Jenkins global module '" + moduleName + "' already registered.");
                 }
-                return;
+                // We continue the execution, because there may be new requesters of the module. 
+                // WAS (jenkins-2.1): return;
             }
             
             if (!module) {
