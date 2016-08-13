@@ -1,12 +1,17 @@
 {
   "name": "@jenkins-cd/js-modules",
-  "version": "0.0.5",
+  "version": "0.0.6-beta2",
   "description": "Jenkins CI JavaScript module bundle loader",
   "main": "js/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublish": "./prepublish.sh"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "files": [
+    "js",
+    "img",
+    "README.md",
+    "FAQs.md"
+  ],
   "author": "Tom Fennelly <tom.fennelly@gmail.com> (https://github.com/tfennelly)",
   "license": "MIT",
   "repository": {
@@ -20,6 +25,6 @@
     "jsdom": "7.0.2"
   },
   "dependencies": {
-    "window-handle": "0.0.6"
+    "window-handle": "1.0.0"
   }
 }

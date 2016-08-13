@@ -20,18 +20,44 @@ describe("internal.js", function () {
         expect(actual.nsProvider).toBe(expected.nsProvider);
         expect(actual.namespace).toBe(expected.namespace);
         expect(actual.moduleName).toBe(expected.moduleName);
+        expect(actual.moduleVersion).toBe(expected.moduleVersion);
     }
 
     it("- test parseResourceQName", function () {
         var internal = require("../js/internal");
 
         assertQNameOK(internal.parseResourceQName('b'), {nsProvider: undefined, namespace: undefined, moduleName: 'b'});
+        assertQNameOK(internal.parseResourceQName('@orgx/b'), {nsProvider: undefined, namespace: undefined, moduleName: '@orgx/b'});
         assertQNameOK(internal.parseResourceQName('a:b'), {nsProvider: undefined, namespace: 'a', moduleName: 'b'});
         assertQNameOK(internal.parseResourceQName('plugin/a:b'), {nsProvider: 'plugin', namespace: 'a', moduleName: 'b'});
         assertQNameOK(internal.parseResourceQName('core-assets/a:b'), {nsProvider: 'core-assets', namespace: 'a', moduleName: 'b'});
+        assertQNameOK(internal.parseResourceQName('core-assets/a:@orgx/b'), {nsProvider: 'core-assets', namespace: 'a', moduleName: '@orgx/b'});
 
+        assertQNameOK(internal.parseResourceQName('b@1.1.1'), {nsProvider: undefined, namespace: undefined, moduleName: 'b', moduleVersion: '1.1.1'});
+        assertQNameOK(internal.parseResourceQName('@orgx/b@1.1.1'), {nsProvider: undefined, namespace: undefined, moduleName: '@orgx/b', moduleVersion: '1.1.1'});
+        assertQNameOK(internal.parseResourceQName('a:b@1.1.1'), {nsProvider: undefined, namespace: 'a', moduleName: 'b', moduleVersion: '1.1.1'});
+        assertQNameOK(internal.parseResourceQName('plugin/a:b@1.1.1'), {nsProvider: 'plugin', namespace: 'a', moduleName: 'b', moduleVersion: '1.1.1'});
+        assertQNameOK(internal.parseResourceQName('core-assets/a:b@1.1.1'), {nsProvider: 'core-assets', namespace: 'a', moduleName: 'b', moduleVersion: '1.1.1'});
+        assertQNameOK(internal.parseResourceQName('core-assets/a:@orgx/b@1.1.1'), {nsProvider: 'core-assets', namespace: 'a', moduleName: '@orgx/b', moduleVersion: '1.1.1'});
+        
         // unsupported nsProvider should switch to 'plugin'
         assertQNameOK(internal.parseResourceQName('xyz/a:b'), {nsProvider: undefined, namespace: 'a', moduleName: 'b'});
+    });
+
+    it("- test parseVersion", function () {
+        var internal = require('../js/internal');
+        
+        var parsedVer = internal.parseNPMVersion('1.2.3');
+        expect(parsedVer.major).toBe('1');
+        expect(parsedVer.minor).toBe('2');
+        expect(parsedVer.patch).toBe('3');
+        expect(parsedVer.prerelease).toBe(undefined);
+        
+        parsedVer = internal.parseNPMVersion('1.2.3-beta.1');
+        expect(parsedVer.major).toBe('1');
+        expect(parsedVer.minor).toBe('2');
+        expect(parsedVer.patch).toBe('3');
+        expect(parsedVer.prerelease).toBe('beta.1');
     });
 
     it("- test toModuleSrc", function () {

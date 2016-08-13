@@ -41,7 +41,7 @@ exports.import = function() {
     }
     
     if (moduleQNames.length == 0) {
-        throw "No module names specified.";
+        throw new Error("No module names specified.");
     }
     
     return promise.make(function (resolve, reject) {
@@ -103,8 +103,8 @@ exports.require = function(moduleQName) {
     var parsedModuleName = internal.parseResourceQName(moduleQName);
     var module = internal.getModule(parsedModuleName);    
     if (!module) {
-        throw "Unable to perform synchronous 'require' for module '" + moduleQName + "'. This module is not pre-loaded. " +
-            "The module needs to have been asynchronously pre-loaded via an outer call to 'import'.";
+        throw new Error("Unable to perform synchronous 'require' for module '" + moduleQName + "'. This module is not pre-loaded. " +
+            "The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
     }
     return module.exports;
 }
@@ -122,7 +122,8 @@ exports.require = function(moduleQName) {
 exports.export = function(namespace, moduleName, module, onError) {
     internal.onReady(function() {
         try {
-            var moduleSpec = {namespace: namespace, moduleName: moduleName};
+            var moduleQName = (namespace ? namespace + ':' : '') + moduleName;
+            var moduleSpec = internal.parseResourceQName(moduleQName);
             var moduleNamespaceObj = internal.getModuleNamespaceObj(moduleSpec);
             
             if (moduleNamespaceObj[moduleName]) {
@@ -143,7 +144,7 @@ exports.export = function(namespace, moduleName, module, onError) {
                     exports: module
                 };
             }
-            moduleNamespaceObj[moduleName] = module;
+            moduleNamespaceObj[moduleSpec.getLoadBundleName()] = module;
             
             // Notify all that the module has been registered. See internal.loadModule also.
             internal.notifyModuleExported(moduleSpec, module.exports);

@@ -14,7 +14,7 @@ describe("index.js", function () {
             try {
                 jenkins.require('pluginA:mathUtils');
             } catch (e) {
-                expect(e).toBe("Unable to perform synchronous 'require' for module 'pluginA:mathUtils'. This module is not pre-loaded. The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
+                expect(e.message).toBe("Unable to perform synchronous 'require' for module 'pluginA:mathUtils'. This module is not pre-loaded. The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
             }
             
             // should fail because a export never happens
@@ -533,7 +533,7 @@ describe("index.js", function () {
                     return lhs + rhs;
                 }
             }, function (e) {
-                expect(e).toBe("Attribute 'data-rooturl' not defined on the document <head> element.");
+                expect(e.message).toBe("Attribute 'data-rooturl' not defined on the document <head> element.");
                 done();
             });
         }, '<html><head></head></html>');

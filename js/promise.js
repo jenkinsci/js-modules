@@ -73,7 +73,7 @@ APromise.prototype.reject = function (reason) {
 
 APromise.prototype.onFulfilled = function(whenFulfilled) {
     if (!whenFulfilled) {
-        throw 'Must provide an "whenFulfilled" callback.';
+        throw new Error('Must provide an "whenFulfilled" callback.');
     }
     this.whenFulfilled = whenFulfilled;
     return this;

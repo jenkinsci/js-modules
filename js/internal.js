@@ -64,7 +64,7 @@ exports.getModuleNamespaceObj = function(moduleSpec) {
     } else {
         return exports.getGlobalModules();
     }
-}
+};
 
 exports.getNamespace = function(namespaceName) {
     var namespaces = exports.getNamespaces();
@@ -93,9 +93,9 @@ exports.import = function(moduleQName, onRegisterTimeout) {
             } else {
                 if (onRegisterTimeout === 0) {
                     if (moduleSpec.namespace) {
-                        throw 'Module ' + moduleSpec.namespace + ':' + moduleSpec.moduleName + ' require failure. Async load mode disabled.';
+                        throw new Error('Module ' + moduleSpec.namespace + ':' + moduleSpec.moduleName + ' require failure. Async load mode disabled.');
                     } else {
-                        throw 'Global module ' + moduleSpec.moduleName + ' require failure. Async load mode disabled.';
+                        throw new Error('Global module ' + moduleSpec.moduleName + ' require failure. Async load mode disabled.');
                     }
                 }
 
@@ -113,8 +113,7 @@ exports.import = function(moduleQName, onRegisterTimeout) {
 };
 
 exports.loadModule = function(moduleSpec, onRegisterTimeout) {
-    var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
-    var module = moduleNamespaceObj[moduleSpec.moduleName];
+    var module = exports.getModule(moduleSpec);
     
     if (module) {
         // Module already loaded. This prob shouldn't happen.
@@ -158,7 +157,24 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
         });
     }
     
-    var loadingModule = getLoadingModule(moduleNamespaceObj, moduleSpec.moduleName);
+    var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
+    var loadModuleName = moduleSpec.getLoadBundleName();
+    var loadVersion = moduleSpec.getLoadBundleVersion();
+    var doScriptLoad = true;
+    
+    if (loadVersion) {
+        // If a version was specified then we only do the script load if a
+        // specific version was provided i.e. loading does not get triggered
+        // by imports that specify non-specific version numbers e.g. "any"
+        // or "1.2.x". A specific version number would be e.g. "1.2.3" i.e.
+        // fully qualified. When loading is not triggered, the import is depending
+        // on another import (with a specific version) or on another bundle to do an
+        // export of an internal dependency i.e. on another bundle "providing"
+        // the module by exporting it.
+        doScriptLoad = loadVersion.isSpecific();
+    }
+    
+    var loadingModule = getLoadingModule(moduleNamespaceObj, loadModuleName);
     if (!loadingModule.waitList) {
         loadingModule.waitList = [];
     }
@@ -170,8 +186,8 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
     } finally {
         // We can auto/dynamic load modules in a non-global namespace. Global namespace modules
         // need to make sure they load themselves (via an adjunct, or whatever).
-        if (moduleSpec.namespace) {
-            var scriptId = exports.toModuleId(moduleSpec.namespace, moduleSpec.moduleName) + ':js';
+        if (doScriptLoad && moduleSpec.namespace) {
+            var scriptId = exports.toModuleId(moduleSpec.namespace, loadModuleName) + ':js';
             var scriptSrc = exports.toModuleSrc(moduleSpec, 'js');
             var scriptEl = exports.addScript(scriptSrc, {
                 scriptId: scriptId,
@@ -194,7 +210,7 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
                 // See getBundleNSProviderFromScriptElement.
                 scriptEl.setAttribute('data-jenkins-module-nsProvider', moduleSpec.nsProvider);
                 scriptEl.setAttribute('data-jenkins-module-namespace', moduleSpec.namespace);
-                scriptEl.setAttribute('data-jenkins-module-moduleName', moduleSpec.moduleName);
+                scriptEl.setAttribute('data-jenkins-module-moduleName', loadModuleName);
             }
         }
     }
@@ -314,7 +330,7 @@ exports.addScript = function(scriptSrc, options) {
 
 exports.notifyModuleExported = function(moduleSpec, moduleExports) {
     var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
-    var loadingModule = getLoadingModule(moduleNamespaceObj, moduleSpec.moduleName);
+    var loadingModule = getLoadingModule(moduleNamespaceObj, moduleSpec.getLoadBundleName());
     
     loadingModule.loaded = true;
     if (loadingModule.waitList) {
@@ -414,11 +430,11 @@ exports.toModuleSrc = function(moduleSpec, srcType) {
 
     var srcPath = undefined;
     if (srcType === 'js') {
-        srcPath = moduleSpec.moduleName + '.js';
+        srcPath = moduleSpec.getLoadBundleFileNamePrefix() + '.js';
     } else if (srcType === 'css') {
         srcPath = moduleSpec.moduleName + '/style.css';
     } else {
-        throw 'Unsupported srcType "'+ srcType + '".';
+        throw new Error('Unsupported srcType "'+ srcType + '".');
     }
 
     if (nsProvider === 'adjuncts') {
@@ -428,7 +444,7 @@ exports.toModuleSrc = function(moduleSpec, srcType) {
     } else if (nsProvider === 'core-assets') {
         return exports.getCoreAssetsJSModulesPath(moduleSpec.namespace) + '/' + srcPath;
     } else {
-        throw 'Unsupported namespace provider: ' + nsProvider;
+        throw new Error('Unsupported namespace provider: ' + nsProvider);
     }
 };
 
@@ -456,7 +472,7 @@ exports.getHeadElement = function() {
     var window = windowHandle.getWindow();
     var docHead = window.document.getElementsByTagName("head");
     if (!docHead || docHead.length == 0) {
-        throw 'No head element found in document.';
+        throw new Error('No head element found in document.');
     }
     return docHead[0];
 };
@@ -468,8 +484,166 @@ exports.setRootURL = function(url) {
     jenkinsCIGlobal.rootURL = url;
 };
 
+exports.parseNPMName = function(resourceName) {
+    if (resourceName.length > 1) {
+        var npmName = {};
+        var orgSlashIndex = resourceName.indexOf('/');
+        
+        if (resourceName.charAt(0) === '@' && orgSlashIndex > 0) {
+            // It's an NPM org package. Strip off the org and package
+            // and add it to the name. We'll get the rest then and parse
+            // that.
+            npmName.name = resourceName.substring(0, orgSlashIndex + 1);
+            
+            // Remove the org part from the name and continue parsing.
+            resourceName = resourceName.substring(orgSlashIndex + 1);
+        } else {
+            // Initialise it so we can append to it below.
+            npmName.name = '';
+        }
+        
+        var versionIndex = resourceName.indexOf('@');
+        if (versionIndex > 0) {
+            npmName.name += resourceName.substring(0, versionIndex);
+            npmName.version = resourceName.substring(versionIndex + 1);
+        } else {
+            npmName.name += resourceName;
+        }
+        
+        return npmName;
+    } else {
+        return {
+            name: resourceName
+        }
+    }
+};
+
+exports.parseNPMVersion = function(version) {
+    if (!version) {
+        return undefined;
+    } else if (version === 'any') {
+        // Return an empty object i.e. don't specify a major,
+        // minor, patch etc.
+        return {
+            raw: 'any'
+        };
+    }
+    
+    function normalizeToken(string) {
+        // remove anything that's not a digit, a dot or an x.
+        var normalized = string.replace(/[^\d.x]/g, '');
+        if (normalized === '') {
+            return undefined;
+        }
+        return normalized;
+    }
+    
+    var versionTokens = version.split('.');
+    var parsedVer = {
+        raw: version
+    };
+    
+    parsedVer.prerelease = undefined;
+    
+    var patchAndPrerelease = '';
+    for (var i = 2; i < versionTokens.length; i++) {
+        if (patchAndPrerelease.length > 0) {
+            patchAndPrerelease += '.';
+        }
+        patchAndPrerelease += versionTokens[i];
+        
+        var separatorIdx = patchAndPrerelease.indexOf('-');
+        if (separatorIdx !== -1) {
+            parsedVer.patch = normalizeToken(patchAndPrerelease.substring(0, separatorIdx));
+            parsedVer.prerelease = patchAndPrerelease.substring(separatorIdx + 1);
+        } else {
+            parsedVer.patch = normalizeToken(patchAndPrerelease);
+        }
+    }
+    
+    if (versionTokens.length >= 2) {
+        parsedVer.minor = normalizeToken(versionTokens[1]);
+    }
+    if (versionTokens.length >= 1) {
+        parsedVer.major = normalizeToken(versionTokens[0]);
+    }
+    
+    parsedVer.isSpecific = (parsedVer.major && parsedVer.minor && parsedVer.patch);
+    
+    return parsedVer;
+};
+
+function attachModuleCompatVersions(moduleSpec) {
+    var versions = [];
+    
+    if (moduleSpec.moduleVersion) {
+        var moduleVersionTokens = moduleSpec.moduleVersion.split('|');
+
+        for (var i in moduleVersionTokens) {
+            var moduleVersionToken = moduleVersionTokens[i].trim();
+            var parsedVersion = exports.parseNPMVersion(moduleVersionToken);
+            versions.push(parsedVersion);
+        }
+    }
+    
+    moduleSpec.moduleCompatVersions = versions;
+    
+    moduleSpec.getLoadBundleVersion = function() {
+        if (versions.length === 0) {
+            // If no versions were specified on the name, then we
+            // just return undefined.
+            return undefined;
+        }
+        // If a version is specified, we use the first "specific" version
+        // e.g. "1.1.2" is specific while "1.1.x" and "any" are not.
+        for (var i in versions) {
+            var version = versions[i];
+            if (version.isSpecific()) {
+                return version;
+            }
+        }
+        // If there's no specific version then we return the first
+        // version in the list.
+        return versions[0];
+    };
+    
+    moduleSpec.getLoadBundleName = function() {
+        var version = moduleSpec.getLoadBundleVersion();
+        if (version) {
+            return moduleSpec.moduleName + '@' + version.raw;
+        } else {
+            return moduleSpec.moduleName;
+        }
+    };
+
+    moduleSpec.getLoadBundleFileNamePrefix = function() {
+        var version = moduleSpec.getLoadBundleVersion();
+        if (version) {
+            // If a version was specified then we only do the script load if a
+            // specific version was provided i.e. loading does not get triggered
+            // by imports that specify non-specific version numbers e.g. "any"
+            // or "1.2.x". A specific version number would be e.g. "1.2.3" i.e.
+            // fully qualified. When loading is not triggered, the import is depending
+            // on another import (with a specific version) or on a bundle do an
+            // export of an internal dependency i.e. on another bundle "providing"
+            // the module be exporting it.
+            if (version.isSpecific()) {
+                return moduleSpec.moduleName + '-' + version.raw.replace('.', '-');
+            } else {
+                return undefined;
+            }
+        } else {
+            return moduleSpec.moduleName;
+        }
+    };
+    
+    return moduleSpec;
+}
+
 exports.parseResourceQName = function(resourceQName) {
     var qNameTokens = resourceQName.split(":");
+    var moduleSpec;
+    
     if (qNameTokens.length === 2) {
         var namespace = qNameTokens[0].trim();
         var nsTokens = namespace.split("/");
@@ -482,35 +656,53 @@ exports.parseResourceQName = function(resourceQName) {
                 namespaceProvider = undefined;
             }
         }
-        return {
+        
+        var npmName = exports.parseNPMName(qNameTokens[1].trim());
+        moduleSpec = {
             nsProvider: namespaceProvider,
             namespace: namespace,
-            moduleName: qNameTokens[1].trim()
+            moduleName: npmName.name,
+            moduleVersion: npmName.version
         };
     } else {
         // The module/bundle is not in a namespace and doesn't
         // need to be loaded i.e. it will load itself and export.
-        return {
-            moduleName: qNameTokens[0].trim()
+        var npmName = exports.parseNPMName(qNameTokens[0].trim());
+
+        moduleSpec = {
+            moduleName: npmName.name,
+            moduleVersion: npmName.version
         };
     }
+    
+    attachModuleCompatVersions(moduleSpec);
+    
+    return moduleSpec;
 };
 
 exports.getModule = function(moduleSpec) {
-    if (moduleSpec.namespace) {
-        var plugin = exports.getNamespace(moduleSpec.namespace);
-        return plugin[moduleSpec.moduleName];
+    var namespace = exports.getModuleNamespaceObj(moduleSpec);
+    
+    if (!moduleSpec.moduleVersion) {
+        return namespace[moduleSpec.moduleName];
     } else {
-        var globals = exports.getGlobalModules();
-        return globals[moduleSpec.moduleName];
+        for (var i in moduleSpec.moduleCompatVersions) {
+            var moduleCompatVersion = moduleSpec.moduleCompatVersions[i];
+            var module = namespace[moduleSpec.moduleName + '@' + moduleCompatVersion.raw];
+            if (module) {
+                return module;
+            }
+        }
     }
+    
+    return undefined;
 };
 
 exports.getModuleSpec = function(moduleQName) {
     var moduleSpec = exports.parseResourceQName(moduleQName);
     var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
     if (moduleNamespaceObj) {
-        var loading = getLoadingModule(moduleNamespaceObj, moduleSpec.moduleName);
+        var loading = getLoadingModule(moduleNamespaceObj, moduleSpec.getLoadBundleName());
         if (loading && loading.moduleSpec) {
             return loading.moduleSpec;
         }
@@ -541,7 +733,7 @@ function getRootURL() {
         // Backward compatibility - used to use a 'resurl' attribute.
         rootURL = getAttribute(docHead, "resurl");
         if (rootURL === undefined || rootURL === null) {
-            throw "Attribute 'data-rooturl' not defined on the document <head> element.";
+            throw new Error("Attribute 'data-rooturl' not defined on the document <head> element.");
         }
     }
 
@@ -567,7 +759,7 @@ function getAdjunctURL() {
         // to be an adjunct url.
         adjunctURL = getAttribute(docHead, "resurl");
         if (adjunctURL === undefined || adjunctURL === null) {
-            throw "Attribute 'data-adjuncturl' not defined on the document <head> element.";
+            throw new Error("Attribute 'data-adjuncturl' not defined on the document <head> element.");
         }
         // Replace the first occurrence of 'static/' with 'adjuncts/' 
         adjunctURL = adjunctURL.replace('static\/', 'adjuncts\/');
