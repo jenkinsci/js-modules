@@ -102,6 +102,7 @@ ModuleSpec.prototype.getLoadBundleName = function() {
 
 ModuleSpec.prototype.getLoadBundleFileNamePrefix = function() {
     var version = this.getLoadBundleVersion();
+    var normalizedName = normalizePackageName(this.moduleName);
     if (version) {
         // If a version was specified then we only do the script load if a
         // specific version was provided i.e. loading does not get triggered
@@ -112,13 +113,27 @@ ModuleSpec.prototype.getLoadBundleFileNamePrefix = function() {
         // export of an internal dependency i.e. on another bundle "providing"
         // the module be exporting it.
         if (version.isSpecific()) {
-            return this.moduleName + '-' + version.raw.replace(new RegExp('\\.', 'g'), '-');
+            return normalizedName + '-' + version.raw.replace(new RegExp('\\.', 'g'), '-');
         } else {
             return undefined;
         }
     } else {
-        return this.moduleName;
+        return normalizedName;
     }
+};
+
+/**
+ * Normalize an NPM package name by removing all non alpha numerics and replacing
+ * with hyphens.
+ * @param packageName The NPM package name.
+ * @returns The normalized NPM package name.
+ */
+function normalizePackageName(packageName) {
+    packageName = packageName.replace(/[^\w.]/g, "-"); // replace non alphanumerics.
+    if (packageName.charAt(0) === '-') {
+        packageName = packageName.substring(1);
+    }
+    return packageName;
 };
 
 function parseNPMName(resourceName) {

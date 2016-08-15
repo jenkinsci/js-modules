@@ -56,5 +56,9 @@ describe("ModuleSpec.js", function () {
         expect(new ModuleSpec('b@any|1.2.x').getLoadBundleFileNamePrefix()).toBe(undefined);
         // Should return 1.2.3 because it's the first "specific" version in the list
         expect(new ModuleSpec('b@any|1.2.3|3.2.1').getLoadBundleFileNamePrefix()).toBe('b-1-2-3');
+        
+        // And test that org package names get normalized...
+        expect(new ModuleSpec('@xorg/funkypack').getLoadBundleFileNamePrefix()).toBe('xorg-funkypack');
+        expect(new ModuleSpec('@xorg/funkypack@any|1.2.3|3.2.1').getLoadBundleFileNamePrefix()).toBe('xorg-funkypack-1-2-3');
     });
 });
