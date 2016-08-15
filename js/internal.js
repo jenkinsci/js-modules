@@ -164,7 +164,7 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
                     if (moduleSpec.namespace) {
                         errorDetail = "Timed out waiting on module '" + moduleSpec.namespace + ":" + moduleSpec.moduleName + "' to load.";
                     } else {
-                        errorDetail = "Timed out waiting on global module '" + moduleSpec.moduleName + "' to load.";
+                        errorDetail = "Timed out waiting on module '" + moduleSpec.moduleName + "' to load.";
                     }                    
                     console.error('Module load failure: ' + errorDetail);
 
@@ -210,9 +210,7 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
     try {
         return waitForRegistration(loadingModule, onRegisterTimeout);
     } finally {
-        // We can auto/dynamic load modules in a non-global namespace. Global namespace modules
-        // need to make sure they load themselves (via an adjunct, or whatever).
-        if (doScriptLoad && moduleSpec.namespace) {
+        if (doScriptLoad) {
             var scriptId = exports.toModuleId(moduleSpec.namespace, loadModuleName) + ':js';
             var scriptSrc = exports.toModuleSrc(moduleSpec, 'js');
             var scriptEl = exports.addScript(scriptSrc, {
@@ -435,7 +433,7 @@ exports.getNamespaces = function() {
 };
 
 exports.toModuleId = function(namespace, moduleName) {
-    return 'jenkins-js-module:' + namespace + ':' + moduleName;
+    return 'jenkins-js-module:' + (namespace ? namespace + ':' : '') + moduleName;
 };
 
 exports.toModuleSrc = function(moduleSpec, srcType) {
