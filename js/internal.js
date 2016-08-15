@@ -456,7 +456,7 @@ exports.toModuleSrc = function(moduleSpec, srcType) {
     if (srcType === 'js') {
         srcPath = moduleSpec.getLoadBundleFileNamePrefix() + '.js';
     } else if (srcType === 'css') {
-        srcPath = moduleSpec.moduleName + '/style.css';
+        srcPath = moduleSpec.getLoadBundleFileNamePrefix() + '/style.css';
     } else {
         throw new Error('Unsupported srcType "'+ srcType + '".');
     }
