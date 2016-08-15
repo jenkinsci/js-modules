@@ -34,7 +34,7 @@ function Version(version) {
     
     function normalizeToken(string) {
         // remove anything that's not a digit, a dot or an x.
-        var normalized = string.replace(/[^\d.x]/g, '');
+        var normalized = string.replace(/[^\d]/g, '');
         if (normalized === '') {
             return undefined;
         }
@@ -70,7 +70,7 @@ function Version(version) {
 }
 
 Version.prototype.isSpecific = function() {
-    return (this.major && this.minor && this.patch);
+    return (this.major !== undefined && this.minor !== undefined && this.patch !== undefined);
 };
 
 module.exports = Version;

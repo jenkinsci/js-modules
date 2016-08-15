@@ -16,6 +16,4 @@ var junitReporter = new jasmineReporters.JUnitXmlReporter({
 gulp.task('default', function () {
     return gulp.src('spec/*-spec.js')
         .pipe(jasmine({reporter: [terminalReporter, junitReporter]}));
-    //return gulp.src('spec/import-version-ranges-spec.js')
-    //    .pipe(jasmine({reporter: [terminalReporter, junitReporter]}));
 });

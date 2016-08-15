@@ -59,7 +59,7 @@ function ModuleSpec(qName) {
     var versions = [];
     
     if (this.moduleVersion) {
-        var moduleVersionTokens = this.moduleVersion.split('|');
+        var moduleVersionTokens = this.moduleVersion.split(/[,|]+/);
 
         for (var i in moduleVersionTokens) {
             var moduleVersionToken = moduleVersionTokens[i].trim();
@@ -112,7 +112,7 @@ ModuleSpec.prototype.getLoadBundleFileNamePrefix = function() {
         // export of an internal dependency i.e. on another bundle "providing"
         // the module be exporting it.
         if (version.isSpecific()) {
-            return this.moduleName + '-' + version.raw.replace('.', '-');
+            return this.moduleName + '-' + version.raw.replace(new RegExp('\\.', 'g'), '-');
         } else {
             return undefined;
         }

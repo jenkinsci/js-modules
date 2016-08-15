@@ -3,6 +3,8 @@
 
 "use strict";
 
+var ModuleSpec = require('../js/ModuleSpec');
+
 describe("ModuleSpec.js", function () {
 
     function assertQNameOK(actual, expected) {
@@ -12,9 +14,7 @@ describe("ModuleSpec.js", function () {
         expect(actual.moduleVersion).toBe(expected.moduleVersion);
     }
 
-    it("- test parse ModuleSpec", function () {
-        var ModuleSpec = require('../js/ModuleSpec');
-
+    it("- test basic constructor", function () {
         assertQNameOK(new ModuleSpec('b'), {nsProvider: undefined, namespace: undefined, moduleName: 'b'});
         assertQNameOK(new ModuleSpec('@orgx/b'), {nsProvider: undefined, namespace: undefined, moduleName: '@orgx/b'});
         assertQNameOK(new ModuleSpec('a:b'), {nsProvider: undefined, namespace: 'a', moduleName: 'b'});
@@ -32,5 +32,29 @@ describe("ModuleSpec.js", function () {
         // unsupported nsProvider should switch to 'plugin'
         assertQNameOK(new ModuleSpec('xyz/a:b'), {nsProvider: undefined, namespace: 'a', moduleName: 'b'});
     });
-    
+
+    it("- test getLoadBundleVersion", function () {
+        expect(new ModuleSpec('b').getLoadBundleVersion()).toBe(undefined);
+        // None of the versions are specific ... return the first
+        expect(new ModuleSpec('b@any|1.2.x').getLoadBundleVersion().raw).toBe('any');
+        // Should return 1.2.3 because it's the first "specific" version in the list
+        expect(new ModuleSpec('b@any|1.2.3|3.2.1').getLoadBundleVersion().raw).toBe('1.2.3');
+        expect(new ModuleSpec('b@any,1.2.3,3.2.1').getLoadBundleVersion().raw).toBe('1.2.3');
+    });
+
+    it("- test getLoadBundleName", function () {
+        expect(new ModuleSpec('b').getLoadBundleName()).toBe('b');
+        // None of the versions are specific ... return the first
+        expect(new ModuleSpec('b@any|1.2.x').getLoadBundleName()).toBe('b@any');
+        // Should return 1.2.3 because it's the first "specific" version in the list
+        expect(new ModuleSpec('b@any|1.2.3|3.2.1').getLoadBundleName()).toBe('b@1.2.3');
+    });
+
+    it("- test getLoadBundleFileNamePrefix", function () {
+        expect(new ModuleSpec('b').getLoadBundleFileNamePrefix()).toBe('b');
+        // Has versions, but none are specific ... return undefined
+        expect(new ModuleSpec('b@any|1.2.x').getLoadBundleFileNamePrefix()).toBe(undefined);
+        // Should return 1.2.3 because it's the first "specific" version in the list
+        expect(new ModuleSpec('b@any|1.2.3|3.2.1').getLoadBundleFileNamePrefix()).toBe('b-1-2-3');
+    });
 });
