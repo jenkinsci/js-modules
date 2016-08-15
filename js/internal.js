@@ -6,7 +6,7 @@ var whoami;
 
 exports.whoami = function(moduleQName) {
     if (moduleQName) {
-        whoami = exports.parseResourceQName(moduleQName);
+        whoami = new ModuleSpec(moduleQName);
         whoami.nsProvider = getBundleNSProviderFromScriptElement(whoami.namespace, whoami.moduleName);
     }
     return whoami;
@@ -84,7 +84,7 @@ exports.import = function(moduleQName, onRegisterTimeout) {
         // exists before attempting to fulfill the require operation. It may not exists
         // immediately in a test env.
         exports.onReady(function() {
-            var moduleSpec = exports.parseResourceQName(moduleQName);
+            var moduleSpec = new ModuleSpec(moduleQName);
             var module = exports.getModule(moduleSpec);
             
             if (module) {
@@ -518,168 +518,6 @@ exports.parseNPMName = function(resourceName) {
     }
 };
 
-exports.parseNPMVersion = function(version) {
-    if (!version) {
-        return undefined;
-    } else if (version === 'any') {
-        // Return an empty object i.e. don't specify a major,
-        // minor, patch etc.
-        return {
-            raw: 'any'
-        };
-    }
-    
-    function normalizeToken(string) {
-        // remove anything that's not a digit, a dot or an x.
-        var normalized = string.replace(/[^\d.x]/g, '');
-        if (normalized === '') {
-            return undefined;
-        }
-        return normalized;
-    }
-    
-    var versionTokens = version.split('.');
-    var parsedVer = {
-        raw: version
-    };
-    
-    parsedVer.prerelease = undefined;
-    
-    var patchAndPrerelease = '';
-    for (var i = 2; i < versionTokens.length; i++) {
-        if (patchAndPrerelease.length > 0) {
-            patchAndPrerelease += '.';
-        }
-        patchAndPrerelease += versionTokens[i];
-        
-        var separatorIdx = patchAndPrerelease.indexOf('-');
-        if (separatorIdx !== -1) {
-            parsedVer.patch = normalizeToken(patchAndPrerelease.substring(0, separatorIdx));
-            parsedVer.prerelease = patchAndPrerelease.substring(separatorIdx + 1);
-        } else {
-            parsedVer.patch = normalizeToken(patchAndPrerelease);
-        }
-    }
-    
-    if (versionTokens.length >= 2) {
-        parsedVer.minor = normalizeToken(versionTokens[1]);
-    }
-    if (versionTokens.length >= 1) {
-        parsedVer.major = normalizeToken(versionTokens[0]);
-    }
-    
-    parsedVer.isSpecific = (parsedVer.major && parsedVer.minor && parsedVer.patch);
-    
-    return parsedVer;
-};
-
-function attachModuleCompatVersions(moduleSpec) {
-    var versions = [];
-    
-    if (moduleSpec.moduleVersion) {
-        var moduleVersionTokens = moduleSpec.moduleVersion.split('|');
-
-        for (var i in moduleVersionTokens) {
-            var moduleVersionToken = moduleVersionTokens[i].trim();
-            var parsedVersion = exports.parseNPMVersion(moduleVersionToken);
-            versions.push(parsedVersion);
-        }
-    }
-    
-    moduleSpec.moduleCompatVersions = versions;
-    
-    moduleSpec.getLoadBundleVersion = function() {
-        if (versions.length === 0) {
-            // If no versions were specified on the name, then we
-            // just return undefined.
-            return undefined;
-        }
-        // If a version is specified, we use the first "specific" version
-        // e.g. "1.1.2" is specific while "1.1.x" and "any" are not.
-        for (var i in versions) {
-            var version = versions[i];
-            if (version.isSpecific()) {
-                return version;
-            }
-        }
-        // If there's no specific version then we return the first
-        // version in the list.
-        return versions[0];
-    };
-    
-    moduleSpec.getLoadBundleName = function() {
-        var version = moduleSpec.getLoadBundleVersion();
-        if (version) {
-            return moduleSpec.moduleName + '@' + version.raw;
-        } else {
-            return moduleSpec.moduleName;
-        }
-    };
-
-    moduleSpec.getLoadBundleFileNamePrefix = function() {
-        var version = moduleSpec.getLoadBundleVersion();
-        if (version) {
-            // If a version was specified then we only do the script load if a
-            // specific version was provided i.e. loading does not get triggered
-            // by imports that specify non-specific version numbers e.g. "any"
-            // or "1.2.x". A specific version number would be e.g. "1.2.3" i.e.
-            // fully qualified. When loading is not triggered, the import is depending
-            // on another import (with a specific version) or on a bundle do an
-            // export of an internal dependency i.e. on another bundle "providing"
-            // the module be exporting it.
-            if (version.isSpecific()) {
-                return moduleSpec.moduleName + '-' + version.raw.replace('.', '-');
-            } else {
-                return undefined;
-            }
-        } else {
-            return moduleSpec.moduleName;
-        }
-    };
-    
-    return moduleSpec;
-}
-
-exports.parseResourceQName = function(resourceQName) {
-    var qNameTokens = resourceQName.split(":");
-    var moduleSpec;
-    
-    if (qNameTokens.length === 2) {
-        var namespace = qNameTokens[0].trim();
-        var nsTokens = namespace.split("/");
-        var namespaceProvider = undefined;
-        if (nsTokens.length === 2) {
-            namespaceProvider = nsTokens[0].trim();
-            namespace = nsTokens[1].trim();
-            if (namespaceProvider !== 'plugin' && namespaceProvider !== 'core-assets') {
-                console.error('Unsupported module namespace provider "' + namespaceProvider + '". Setting to undefined.');
-                namespaceProvider = undefined;
-            }
-        }
-        
-        var npmName = exports.parseNPMName(qNameTokens[1].trim());
-        moduleSpec = {
-            nsProvider: namespaceProvider,
-            namespace: namespace,
-            moduleName: npmName.name,
-            moduleVersion: npmName.version
-        };
-    } else {
-        // The module/bundle is not in a namespace and doesn't
-        // need to be loaded i.e. it will load itself and export.
-        var npmName = exports.parseNPMName(qNameTokens[0].trim());
-
-        moduleSpec = {
-            moduleName: npmName.name,
-            moduleVersion: npmName.version
-        };
-    }
-    
-    attachModuleCompatVersions(moduleSpec);
-    
-    return moduleSpec;
-};
-
 exports.getModule = function(moduleSpec) {
     var namespace = exports.getModuleNamespaceObj(moduleSpec);
     
@@ -699,7 +537,7 @@ exports.getModule = function(moduleSpec) {
 };
 
 exports.getModuleSpec = function(moduleQName) {
-    var moduleSpec = exports.parseResourceQName(moduleQName);
+    var moduleSpec = new ModuleSpec(moduleQName);
     var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
     if (moduleNamespaceObj) {
         var loading = getLoadingModule(moduleNamespaceObj, moduleSpec.getLoadBundleName());
@@ -825,3 +663,154 @@ function getBundleNSProviderFromScriptElement(namespace, moduleName) {
 
     return undefined;
 }
+
+exports.Version = Version;
+function Version(version) {
+    this.raw = version;
+    
+    // The version string must start with a digit.
+    // It's not an error for it not to start with a number e.g. it can
+    // be "any" and we may introduce other aliases.
+    if (!version || version.length === 0 || isNaN(version.charAt(0))) {
+        return;
+    }
+    
+    function normalizeToken(string) {
+        // remove anything that's not a digit, a dot or an x.
+        var normalized = string.replace(/[^\d.x]/g, '');
+        if (normalized === '') {
+            return undefined;
+        }
+        return normalized;
+    }
+    
+    var versionTokens = version.split('.');
+    
+    this.prerelease = undefined;
+    
+    var patchAndPrerelease = '';
+    for (var i = 2; i < versionTokens.length; i++) {
+        if (patchAndPrerelease.length > 0) {
+            patchAndPrerelease += '.';
+        }
+        patchAndPrerelease += versionTokens[i];
+        
+        var separatorIdx = patchAndPrerelease.indexOf('-');
+        if (separatorIdx !== -1) {
+            this.patch = normalizeToken(patchAndPrerelease.substring(0, separatorIdx));
+            this.prerelease = patchAndPrerelease.substring(separatorIdx + 1);
+        } else {
+            this.patch = normalizeToken(patchAndPrerelease);
+        }
+    }
+    
+    if (versionTokens.length >= 2) {
+        this.minor = normalizeToken(versionTokens[1]);
+    }
+    if (versionTokens.length >= 1) {
+        this.major = normalizeToken(versionTokens[0]);
+    }    
+}
+
+Version.prototype.isSpecific = function() {
+    return (this.major && this.minor && this.patch);
+};
+
+exports.ModuleSpec = ModuleSpec;
+function ModuleSpec(qName) {
+    var qNameTokens = qName.split(":");
+    var moduleSpec;
+    
+    if (qNameTokens.length === 2) {
+        var namespace = qNameTokens[0].trim();
+        var nsTokens = namespace.split("/");
+        var namespaceProvider = undefined;
+        if (nsTokens.length === 2) {
+            namespaceProvider = nsTokens[0].trim();
+            namespace = nsTokens[1].trim();
+            if (namespaceProvider !== 'plugin' && namespaceProvider !== 'core-assets') {
+                console.error('Unsupported module namespace provider "' + namespaceProvider + '". Setting to undefined.');
+                namespaceProvider = undefined;
+            }
+        }
+        
+        var npmName = exports.parseNPMName(qNameTokens[1].trim());
+        
+        this.nsProvider = namespaceProvider;
+        this.namespace = namespace;
+        this.moduleName = npmName.name;
+        this.moduleVersion = npmName.version;
+    } else {
+        // The module/bundle is not in a namespace and doesn't
+        // need to be loaded i.e. it will load itself and export.
+        var npmName = exports.parseNPMName(qNameTokens[0].trim());
+
+        this.moduleName = npmName.name;
+        this.moduleVersion = npmName.version;
+    }
+
+    // Attach version compatibility info
+    var versions = [];
+    
+    if (this.moduleVersion) {
+        var moduleVersionTokens = this.moduleVersion.split('|');
+
+        for (var i in moduleVersionTokens) {
+            var moduleVersionToken = moduleVersionTokens[i].trim();
+            var parsedVersion = new Version(moduleVersionToken);
+            versions.push(parsedVersion);
+        }
+    }
+    
+    this.moduleCompatVersions = versions;
+}
+
+ModuleSpec.prototype.getLoadBundleVersion = function() {
+    if (this.moduleCompatVersions.length === 0) {
+        // If no versions were specified on the name, then we
+        // just return undefined.
+        return undefined;
+    }
+    // If a version is specified, we use the first "specific" version
+    // e.g. "1.1.2" is specific while "1.1.x" and "any" are not.
+    for (var i in this.moduleCompatVersions) {
+        var version = this.moduleCompatVersions[i];
+        if (version.isSpecific()) {
+            return version;
+        }
+    }
+    
+    // If there's no specific version then we return the first
+    // version in the list.
+    return this.moduleCompatVersions[0];
+};
+
+ModuleSpec.prototype.getLoadBundleName = function() {
+    var version = this.getLoadBundleVersion();
+    if (version) {
+        return this.moduleName + '@' + version.raw;
+    } else {
+        return this.moduleName;
+    }
+};
+
+ModuleSpec.prototype.getLoadBundleFileNamePrefix = function() {
+    var version = this.getLoadBundleVersion();
+    if (version) {
+        // If a version was specified then we only do the script load if a
+        // specific version was provided i.e. loading does not get triggered
+        // by imports that specify non-specific version numbers e.g. "any"
+        // or "1.2.x". A specific version number would be e.g. "1.2.3" i.e.
+        // fully qualified. When loading is not triggered, the import is depending
+        // on another import (with a specific version) or on a bundle do an
+        // export of an internal dependency i.e. on another bundle "providing"
+        // the module be exporting it.
+        if (version.isSpecific()) {
+            return this.moduleName + '-' + version.raw.replace('.', '-');
+        } else {
+            return undefined;
+        }
+    } else {
+        return this.moduleName;
+    }
+};

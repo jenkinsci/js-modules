@@ -100,7 +100,7 @@ exports.import = function() {
  * @return The module.
  */
 exports.require = function(moduleQName) {
-    var parsedModuleName = internal.parseResourceQName(moduleQName);
+    var parsedModuleName = new internal.ModuleSpec(moduleQName);
     var module = internal.getModule(parsedModuleName);    
     if (!module) {
         throw new Error("Unable to perform synchronous 'require' for module '" + moduleQName + "'. This module is not pre-loaded. " +
@@ -123,7 +123,7 @@ exports.export = function(namespace, moduleName, module, onError) {
     internal.onReady(function() {
         try {
             var moduleQName = (namespace ? namespace + ':' : '') + moduleName;
-            var moduleSpec = internal.parseResourceQName(moduleQName);
+            var moduleSpec = new internal.ModuleSpec(moduleQName);
             var moduleNamespaceObj = internal.getModuleNamespaceObj(moduleSpec);
             
             if (moduleNamespaceObj[moduleName]) {
