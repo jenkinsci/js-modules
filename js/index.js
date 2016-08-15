@@ -1,5 +1,30 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2016, CloudBees, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 var internal = require("./internal");
 var promise = require("./promise");
+var ModuleSpec = require('./ModuleSpec');
 var onRegisterTimeout;
 var whoami;
 
@@ -100,7 +125,7 @@ exports.import = function() {
  * @return The module.
  */
 exports.require = function(moduleQName) {
-    var parsedModuleName = new internal.ModuleSpec(moduleQName);
+    var parsedModuleName = new ModuleSpec(moduleQName);
     var module = internal.getModule(parsedModuleName);    
     if (!module) {
         throw new Error("Unable to perform synchronous 'require' for module '" + moduleQName + "'. This module is not pre-loaded. " +
@@ -123,7 +148,7 @@ exports.export = function(namespace, moduleName, module, onError) {
     internal.onReady(function() {
         try {
             var moduleQName = (namespace ? namespace + ':' : '') + moduleName;
-            var moduleSpec = new internal.ModuleSpec(moduleQName);
+            var moduleSpec = new ModuleSpec(moduleQName);
             var moduleNamespaceObj = internal.getModuleNamespaceObj(moduleSpec);
             
             if (moduleNamespaceObj[moduleName]) {
