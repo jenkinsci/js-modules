@@ -23,7 +23,6 @@
  */
 
 var promise = require("./promise");
-var windowHandle = require("window-handle");
 var ModuleSpec = require('./ModuleSpec');
 
 var jenkinsCIGlobal;
@@ -36,18 +35,6 @@ exports.whoami = function(moduleQName) {
         whoami.nsProvider = getBundleNSProviderFromScriptElement(whoami.namespace, whoami.moduleName);
     }
     return whoami;
-};
-
-exports.onReady = function(callback) {
-    // This allows test based initialization of js-modules when there might 
-    // not yet be a global window object.
-    if (jenkinsCIGlobal) {
-        callback();
-    } else {
-        windowHandle.getWindow(function() {
-            callback();
-        });
-    }    
 };
 
 exports.onJenkinsGlobalInit = function(callback) {
@@ -73,7 +60,6 @@ exports.getJenkins = function() {
     if (jenkinsCIGlobal) {
         return jenkinsCIGlobal;
     }
-    var window = windowHandle.getWindow();
     if (window.jenkinsCIGlobal) {
         jenkinsCIGlobal = window.jenkinsCIGlobal;
     } else {
@@ -106,35 +92,30 @@ exports.getNamespace = function(namespaceName) {
 
 exports.import = function(moduleQName, onRegisterTimeout) {
     return promise.make(function (resolve, reject) {
-        // Some functions here needs to access the 'window' global. We want to make sure that
-        // exists before attempting to fulfill the require operation. It may not exists
-        // immediately in a test env.
-        exports.onReady(function() {
-            var moduleSpec = new ModuleSpec(moduleQName);
-            var module = exports.getModule(moduleSpec);
-            
-            if (module) {
-                // module already loaded
-                resolve(module.exports);
-            } else {
-                if (onRegisterTimeout === 0) {
-                    if (moduleSpec.namespace) {
-                        throw new Error('Module ' + moduleSpec.namespace + ':' + moduleSpec.moduleName + ' require failure. Async load mode disabled.');
-                    } else {
-                        throw new Error('Global module ' + moduleSpec.moduleName + ' require failure. Async load mode disabled.');
-                    }
-                }
+        var moduleSpec = new ModuleSpec(moduleQName);
+        var module = exports.getModule(moduleSpec);
 
-                // module not loaded. Load async, fulfilling promise once registered
-                exports.loadModule(moduleSpec, onRegisterTimeout)
-                    .onFulfilled(function (moduleExports) {
-                        resolve(moduleExports);
-                    })
-                    .onRejected(function (error) {
-                        reject(error);
-                    });
+        if (module) {
+            // module already loaded
+            resolve(module.exports);
+        } else {
+            if (onRegisterTimeout === 0) {
+                if (moduleSpec.namespace) {
+                    throw new Error('Module ' + moduleSpec.namespace + ':' + moduleSpec.moduleName + ' require failure. Async load mode disabled.');
+                } else {
+                    throw new Error('Global module ' + moduleSpec.moduleName + ' require failure. Async load mode disabled.');
+                }
             }
-        });
+
+            // module not loaded. Load async, fulfilling promise once registered
+            exports.loadModule(moduleSpec, onRegisterTimeout)
+                .onFulfilled(function (moduleExports) {
+                    resolve(moduleExports);
+                })
+                .onRejected(function (error) {
+                    reject(error);
+                });
+        }
     });    
 };
 
@@ -290,7 +271,7 @@ exports.addScript = function(scriptSrc, options) {
         normalizedOptions.scriptSrcBase = getAdjunctURL() + '/';
     }
 
-    var document = windowHandle.getWindow().document;
+    var document = window.document;
     var head = exports.getHeadElement();
     var script = document.getElementById(normalizedOptions.scriptId);
 
@@ -383,7 +364,7 @@ exports.toCSSId = function (cssPath, namespace) {
 };
 
 exports.addCSSToPage = function(namespace, cssPath, cssElId) {
-    var document = windowHandle.getWindow().document;
+    var document = window.document;
     
     if (cssElId === undefined) {
         cssElId = exports.toCSSId(cssPath, namespace);
@@ -493,7 +474,6 @@ exports.getPluginPath = function(pluginId) {
 };
 
 exports.getHeadElement = function() {
-    var window = windowHandle.getWindow();
     var docHead = window.document.getElementsByTagName("head");
     if (!docHead || docHead.length == 0) {
         throw new Error('No head element found in document.');
@@ -601,7 +581,7 @@ function getAdjunctURL() {
 }
 
 function createElement(name) {
-    var document = windowHandle.getWindow().document;
+    var document = window.document;
     return document.createElement(name);
 }
 

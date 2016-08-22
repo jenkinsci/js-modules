@@ -21,7 +21,7 @@ describe("index.js", function () {
             
             // Check that the <script> element was added to the <head>
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
             var moduleId = internal.toModuleId('pluginA', 'mathUtils@1.2.3') + ':js';
             
             var scriptEl = document.getElementById(moduleId);            
@@ -64,7 +64,7 @@ describe("index.js", function () {
             
             // Check that the <script> element was added to the <head>
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
             var moduleId = internal.toModuleId(undefined, 'mathUtils@1.2.3') + ':js';
             
             var scriptEl = document.getElementById(moduleId);            
@@ -107,7 +107,7 @@ describe("index.js", function () {
             
             // Check that the <script> element was added to the <head>
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
             var moduleId = internal.toModuleId(undefined, 'mathUtils@1.2.3') + ':js';
             
             // Should still add the <script> tags for v1.2.3 because it didn't find an "any"
@@ -153,7 +153,7 @@ describe("index.js", function () {
             // Should not have added <script> tags for v1.2.3 because it found an "any"
             // already loaded.
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
             expect(document.getElementsByTagName('script').length).toBe(0);
             
             // Make sure we can synchronously get the module.
@@ -177,7 +177,7 @@ describe("index.js", function () {
             // Should not have added <script> tags for anything because "any"
             // was the only version specified and it is not a specific version
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
             expect(document.getElementsByTagName('script').length).toBe(0);
             
             // Now do the export so the import can be fullfilled and the test
@@ -209,7 +209,7 @@ describe("index.js", function () {
             // Should not have added <script> tags for anything because "1.2.x"
             // was the only version specified and it is not a specific version
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
             expect(document.getElementsByTagName('script').length).toBe(0);
             
             // Now do the export so the import can be fullfilled and the test

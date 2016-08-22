@@ -23,8 +23,5 @@
     "gulp-jasmine": "2.0.1",
     "jasmine-reporters": "2.0.6",
     "jsdom": "7.0.2"
-  },
-  "dependencies": {
-    "window-handle": "1.0.0"
   }
 }

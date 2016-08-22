@@ -145,42 +145,40 @@ exports.require = function(moduleQName) {
  * @param onError On error callback;
  */
 exports.export = function(namespace, moduleName, module, onError) {
-    internal.onReady(function() {
-        try {
-            var moduleQName = (namespace ? namespace + ':' : '') + moduleName;
-            var moduleSpec = new ModuleSpec(moduleQName);
-            var moduleNamespaceObj = internal.getModuleNamespaceObj(moduleSpec);
-            var moduleLoadName = moduleSpec.getLoadBundleName();
-            
-            if (moduleNamespaceObj[moduleLoadName]) {
-                if (namespace) {
-                    console.debug("Jenkins plugin module '" + namespace + ":" + moduleName + "' already registered.");
-                } else {
-                    console.debug("Jenkins global module '" + moduleName + "' already registered.");
-                }
-                return;
+    try {
+        var moduleQName = (namespace ? namespace + ':' : '') + moduleName;
+        var moduleSpec = new ModuleSpec(moduleQName);
+        var moduleNamespaceObj = internal.getModuleNamespaceObj(moduleSpec);
+        var moduleLoadName = moduleSpec.getLoadBundleName();
+
+        if (moduleNamespaceObj[moduleLoadName]) {
+            if (namespace) {
+                console.debug("Jenkins plugin module '" + namespace + ":" + moduleName + "' already registered.");
+            } else {
+                console.debug("Jenkins global module '" + moduleName + "' already registered.");
             }
-            
-            if (!module) {
-                module = {
-                    exports: {}
-                };
-            } else if (module.exports === undefined) {
-                module = {
-                    exports: module
-                };
-            }
-            moduleNamespaceObj[moduleLoadName] = module;
-            
-            // Notify all that the module has been registered. See internal.loadModule also.
-            internal.notifyModuleExported(moduleSpec, module.exports);
-        } catch (e) {
-            console.error(e);
-            if (onError) {
-                onError(e);
-            }
+            return;
         }
-    });
+
+        if (!module) {
+            module = {
+                exports: {}
+            };
+        } else if (module.exports === undefined) {
+            module = {
+                exports: module
+            };
+        }
+        moduleNamespaceObj[moduleLoadName] = module;
+
+        // Notify all that the module has been registered. See internal.loadModule also.
+        internal.notifyModuleExported(moduleSpec, module.exports);
+    } catch (e) {
+        console.error(e);
+        if (onError) {
+            onError(e);
+        }
+    }
 };
 
 /**
@@ -196,16 +194,14 @@ exports.export = function(namespace, moduleName, module, onError) {
  * @param onError On error callback;
  */
 exports.addModuleCSSToPage = function(namespace, moduleName, onError) {
-    internal.onReady(function() {
-        try {
-            internal.addModuleCSSToPage(namespace, moduleName);
-        } catch (e) {
-            console.error(e);
-            if (onError) {
-                onError(e);
-            }
+    try {
+        internal.addModuleCSSToPage(namespace, moduleName);
+    } catch (e) {
+        console.error(e);
+        if (onError) {
+            onError(e);
         }
-    });
+    }
 };
 
 /**
@@ -216,16 +212,14 @@ exports.addModuleCSSToPage = function(namespace, moduleName, onError) {
  * @param onError On error callback;
  */
 exports.addPluginCSSToPage = function(pluginName, cssPath, onError) {
-    internal.onReady(function() {
-        try {
-            internal.addPluginCSSToPage(pluginName, cssPath);
-        } catch (e) {
-            console.error(e);
-            if (onError) {
-                onError(e);
-            }
+    try {
+        internal.addPluginCSSToPage(pluginName, cssPath);
+    } catch (e) {
+        console.error(e);
+        if (onError) {
+            onError(e);
         }
-    });
+    }
 };
 
 /**
@@ -244,20 +238,18 @@ exports.toCSSId = function (cssPath, namespace) {
  * @param onError On error callback;
  */
 exports.addCSSToPage = function(cssPath, onError) {
-    internal.onReady(function() {
-        try {
-            if (cssPath.indexOf(internal.getAdjunctURL()) === 0) {
-                internal.addCSSToPage(undefined, cssPath);
-            } else {
-                internal.addCSSToPage(undefined, internal.getRootURL() + '/' + cssPath);
-            }
-        } catch (e) {
-            console.error(e);
-            if (onError) {
-                onError(e);
-            }
+    try {
+        if (cssPath.indexOf(internal.getAdjunctURL()) === 0) {
+            internal.addCSSToPage(undefined, cssPath);
+        } else {
+            internal.addCSSToPage(undefined, internal.getRootURL() + '/' + cssPath);
         }
-    });
+    } catch (e) {
+        console.error(e);
+        if (onError) {
+            onError(e);
+        }
+    }
 };
 
 /**
@@ -276,9 +268,7 @@ exports.addCSSToPage = function(cssPath, onError) {
  * @param options Optional script load options object. See above.
  */
 exports.addScript = function(scriptSrc, options) {
-    internal.onReady(function() {
-        internal.addScript(scriptSrc, options);
-    });    
+    internal.addScript(scriptSrc, options);
 };
 
 /**
