@@ -514,7 +514,7 @@ exports.getModule = function(moduleSpec) {
     if (!moduleSpec.moduleVersion) {
         return namespace[moduleSpec.moduleName];
     } else {
-        for (var i in moduleSpec.moduleCompatVersions) {
+        for (var i = 0; i < moduleSpec.moduleCompatVersions.length; i++) {
             var moduleCompatVersion = moduleSpec.moduleCompatVersions[i];
             var module = namespace[moduleSpec.moduleName + '@' + moduleCompatVersion.raw];
             if (module) {

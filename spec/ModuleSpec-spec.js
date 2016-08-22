@@ -16,6 +16,7 @@ describe("ModuleSpec.js", function () {
 
     it("- test basic constructor", function () {
         assertQNameOK(new ModuleSpec('b'), {nsProvider: undefined, namespace: undefined, moduleName: 'b'});
+        assertQNameOK(new ModuleSpec('./b'), {nsProvider: undefined, namespace: undefined, moduleName: './b'});
         assertQNameOK(new ModuleSpec('@orgx/b'), {nsProvider: undefined, namespace: undefined, moduleName: '@orgx/b'});
         assertQNameOK(new ModuleSpec('a:b'), {nsProvider: undefined, namespace: 'a', moduleName: 'b'});
         assertQNameOK(new ModuleSpec('plugin/a:b'), {nsProvider: 'plugin', namespace: 'a', moduleName: 'b'});
@@ -48,6 +49,24 @@ describe("ModuleSpec.js", function () {
         expect(new ModuleSpec('b@any|1.2.x').getLoadBundleName()).toBe('b@any');
         // Should return 1.2.3 because it's the first "specific" version in the list
         expect(new ModuleSpec('b@any|1.2.3|3.2.1').getLoadBundleName()).toBe('b@1.2.3');
+    });
+
+    it("- test importAs", function () {
+        
+        var x = new ModuleSpec('core-assets/b');
+        
+        expect(new ModuleSpec('b').importAs()).toBe('b:b');
+        expect(new ModuleSpec('a:b').importAs()).toBe('a:b');
+        expect(new ModuleSpec('./b').importAs()).toBe('./b');
+        // None of the versions are specific ... return the first
+        expect(new ModuleSpec('b@any|1.2.x').importAs()).toBe('b:b@any');
+        // Should return 1.2.3 because it's the first "specific" version in the list
+        expect(new ModuleSpec('b@any|1.2.3|3.2.1').importAs()).toBe('b:b@1.2.3');
+        expect(new ModuleSpec('@xorg/b@any|1.2.3|3.2.1').importAs()).toBe('xorg-b:xorg-b@1.2.3');
+
+        // And with namespaces
+        expect(new ModuleSpec('core-assets/a:b').importAs()).toBe('core-assets/a:b');
+        expect(new ModuleSpec('core-assets/b:@xorg/b@any|1.2.3|3.2.1').importAs()).toBe('core-assets/b:xorg-b@1.2.3');
     });
 
     it("- test getLoadBundleFileNamePrefix", function () {

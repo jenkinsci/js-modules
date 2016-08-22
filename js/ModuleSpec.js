@@ -61,7 +61,7 @@ function ModuleSpec(qName) {
     if (this.moduleVersion) {
         var moduleVersionTokens = this.moduleVersion.split(/[,|]+/);
 
-        for (var i in moduleVersionTokens) {
+        for (var i = 0; i < moduleVersionTokens.length; i++) {
             var moduleVersionToken = moduleVersionTokens[i].trim();
             var parsedVersion = new Version(moduleVersionToken);
             versions.push(parsedVersion);
@@ -79,7 +79,7 @@ ModuleSpec.prototype.getLoadBundleVersion = function() {
     }
     // If a version is specified, we use the first "specific" version
     // e.g. "1.1.2" is specific while "1.1.x" and "any" are not.
-    for (var i in this.moduleCompatVersions) {
+    for (var i = 0; i < this.moduleCompatVersions.length; i++) {
         var version = this.moduleCompatVersions[i];
         if (version.isSpecific()) {
             return version;
@@ -98,6 +98,30 @@ ModuleSpec.prototype.getLoadBundleName = function() {
     } else {
         return this.moduleName;
     }
+};
+
+ModuleSpec.prototype.importAs = function() {
+    if (this.moduleName.charAt(0) === '.') {
+        return this.moduleName;
+    }
+    
+    var version = this.getLoadBundleVersion();
+    var importName = normalizePackageName(this.moduleName);
+    var importNS = this.namespace;
+    
+    if (!importNS) {
+        importNS = importName;
+    }
+    
+    var importAs = importNS + ':' + importName;
+    if (this.nsProvider) {
+        importAs = this.nsProvider + '/' + importAs;
+    }
+    if (version) {
+        importAs += '@' + version.raw;
+    }
+    
+    return importAs;
 };
 
 ModuleSpec.prototype.getLoadBundleFileNamePrefix = function() {
