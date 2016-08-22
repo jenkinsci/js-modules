@@ -5,15 +5,11 @@ This is a JavaScript "module bundle" loader for Jenkins ([NPM] package) i.e. a l
 
 For more information on "module bundle" loading, read the
 <a href="https://github.com/jenkinsci/js-modules/blob/master/FAQs.md#what-does-module-loading-mean">What does "module loading" mean</a> FAQ.
- 
-Install Package:
 
-```
-npm install --save @jenkins-cd/js-modules
-```
 __Table of Contents__:
 <p>
 <ul>
+    <a href="#usage">Usage</a><br/>
     <a href="#problem--motivation">Problem / Motivation</a><br/>
     <a href="https://github.com/jenkinsci/js-modules/blob/master/FAQs.md#do-i-really-need-to-learn-all-this-new-stuff">Do I really need to learn all this "new" stuff?</a><br/>
     <a href="#about-jenkins-modules">About Jenkins Modules</a><br/>
@@ -27,6 +23,28 @@ __Table of Contents__:
 </p>
 
 <hr/>
+
+# Usage
+
+For the most part, you don't actually use `js-modules` directly (aside from installing the package). In general,
+you use it via `js-builder` i.e. you use `js-builder` to build browser-loadable bundles, and those
+bundles will use `js-modules` to load/"import" the modules/packages that they depend on, but do not contain
+within their bundle.
+
+> [js-builder]
+
+Install Package:
+
+```
+npm install --save @jenkins-cd/js-modules
+```
+
+After installing `js-modules`, your next step is to start using [js-builder] and, as stated above, that's
+mostly all you'll ever need to know about `js-modules` because the rest of it happens under the hood via
+[js-builder].
+
+That said, it's probably useful to have an understanding of how `js-modules` actually loads modules/packages.
+For that, take a look at [MODULE_LOADING.md](MODULE_LOADING.md).
  
 # Problem / Motivation
 For the most part, the Jenkins GUI is constructed on the server side from [Jelly] files ([Stapler] etc). Client-side
@@ -73,8 +91,8 @@ The following slides attempt to bring you through `js-modules` in some more deta
 
 The following [NPM] packages are designed to aid the use and adoption of `js-modules`:
 
-* [jenkins-js-builder]: See this package for details on how to create module bundles for `js-modules`.
-* [jenkins-js-test]: See this package for details on how to test modules for module bundles for `js-modules`. This package's functionality is indirectly available via [jenkins-js-builder].
+* [js-builder]: See this package for details on how to create module bundles for `js-modules`.
+* [js-test]: See this package for details on how to test modules for module bundles for `js-modules`. This package's functionality is indirectly available via [js-builder].
 
 # Framework Libs (jenkinsci/js-libs)
 
@@ -104,5 +122,5 @@ We have already created Framework lib bundles for a number of common JavaScript 
 [Stapler]: http://stapler.kohsuke.org/
 [jquery-detached]: https://github.com/tfennelly/jquery-detached
 [jqueryui-detached]: https://github.com/tfennelly/jqueryui-detached
-[jenkins-js-builder]: https://github.com/jenkinsci/js-builder
-[jenkins-js-test]: https://github.com/jenkinsci/js-test
+[js-builder]: https://github.com/jenkinsci/js-builder
+[js-test]: https://github.com/jenkinsci/js-test
