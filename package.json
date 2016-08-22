@@ -1,6 +1,6 @@
 {
   "name": "@jenkins-cd/js-modules",
-  "version": "0.0.6-beta2",
+  "version": "0.0.6-beta9",
   "description": "Jenkins CI JavaScript module bundle loader",
   "main": "js/index.js",
   "scripts": {
