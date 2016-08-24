@@ -14,7 +14,7 @@ describe("index.js", function () {
             try {
                 jenkins.require('pluginA:mathUtils');
             } catch (e) {
-                expect(e).toBe("Unable to perform synchronous 'require' for module 'pluginA:mathUtils'. This module is not pre-loaded. The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
+                expect(e.message).toBe("Unable to perform synchronous 'require' for module 'pluginA:mathUtils'. This module is not pre-loaded. The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
             }
             
             // should fail because a export never happens
@@ -48,7 +48,7 @@ describe("index.js", function () {
             
             // Check that the <script> element was added to the <head>
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
             var moduleId = internal.toModuleId('pluginA', 'mathUtils') + ':js';
             
             var scriptEl = document.getElementById(moduleId);            
@@ -145,7 +145,7 @@ describe("index.js", function () {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
             var head = internal.getHeadElement();
             var script = document.createElement('script');
 
@@ -205,7 +205,7 @@ describe("index.js", function () {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
 
             // Test import where the nsProvider is specified on the import. This is
             // slightly different to using the parent's provider namespace
@@ -367,7 +367,7 @@ describe("index.js", function () {
     it("- test addScript without 'data-replaceable' attribute", function (done) {
         testUtil.onJenkinsPage(function() {
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
 
             var scriptId = 'adjunct:path/to/script.js';
             var jsEl = document.getElementById(scriptId);
@@ -392,7 +392,7 @@ describe("index.js", function () {
     it("- test addScript with 'data-replaceable' attribute", function (done) {
         testUtil.onJenkinsPage(function() {
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
 
             var scriptId = 'adjunct:path/to/script.js';
             var jsEl = document.getElementById(scriptId);
@@ -424,7 +424,7 @@ describe("index.js", function () {
     it("- test addScript with URL mapping/transform", function (done) {
         testUtil.onJenkinsPage(function() {
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
 
             var scriptId = 'adjunct:path/to/script.js';
             var jsEl = document.getElementById(scriptId);
@@ -446,7 +446,7 @@ describe("index.js", function () {
     it("- test addScript (adjunct)", function (done) {
         testUtil.onJenkinsPage(function() {
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
 
             var scriptId = 'adjunct:path/to/script.js';
             var jsEl = document.getElementById(scriptId);
@@ -467,7 +467,7 @@ describe("index.js", function () {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
 
             var cssEl = document.getElementById(internal.toModuleId('pluginA', 'mathUtils') + ':css');
             expect(cssEl).toBe(null);
@@ -485,7 +485,7 @@ describe("index.js", function () {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             var internal = require("../js/internal");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
             var cssId = 'jenkins-js-module:pluginA:css:/jenkins/plugin/pluginA/css/mathUtils.css';
 
             var cssEl = document.getElementById(cssId);
@@ -503,7 +503,7 @@ describe("index.js", function () {
     it("- test addCSSToPage", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
-            var document = require('window-handle').getWindow().document;
+            var document = window.document;
             var cssId = 'jenkins-js-module:global:css:/jenkins/css/mathUtils.css';
 
             var cssEl = document.getElementById(cssId);
@@ -533,7 +533,7 @@ describe("index.js", function () {
                     return lhs + rhs;
                 }
             }, function (e) {
-                expect(e).toBe("Attribute 'data-rooturl' not defined on the document <head> element.");
+                expect(e.message).toBe("Attribute 'data-rooturl' not defined on the document <head> element.");
                 done();
             });
         }, '<html><head></head></html>');

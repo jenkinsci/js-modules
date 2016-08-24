@@ -1,5 +1,30 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2016, CloudBees, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 var internal = require("./internal");
 var promise = require("./promise");
+var ModuleSpec = require('./ModuleSpec');
 var onRegisterTimeout;
 var whoami;
 
@@ -41,7 +66,7 @@ exports.import = function() {
     }
     
     if (moduleQNames.length == 0) {
-        throw "No module names specified.";
+        throw new Error("No module names specified.");
     }
     
     return promise.make(function (resolve, reject) {
@@ -100,11 +125,11 @@ exports.import = function() {
  * @return The module.
  */
 exports.require = function(moduleQName) {
-    var parsedModuleName = internal.parseResourceQName(moduleQName);
+    var parsedModuleName = new ModuleSpec(moduleQName);
     var module = internal.getModule(parsedModuleName);    
     if (!module) {
-        throw "Unable to perform synchronous 'require' for module '" + moduleQName + "'. This module is not pre-loaded. " +
-            "The module needs to have been asynchronously pre-loaded via an outer call to 'import'.";
+        throw new Error("Unable to perform synchronous 'require' for module '" + moduleQName + "'. This module is not pre-loaded. " +
+            "The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
     }
     return module.exports;
 }
@@ -120,40 +145,40 @@ exports.require = function(moduleQName) {
  * @param onError On error callback;
  */
 exports.export = function(namespace, moduleName, module, onError) {
-    internal.onReady(function() {
-        try {
-            var moduleSpec = {namespace: namespace, moduleName: moduleName};
-            var moduleNamespaceObj = internal.getModuleNamespaceObj(moduleSpec);
-            
-            if (moduleNamespaceObj[moduleName]) {
-                if (namespace) {
-                    console.debug("Jenkins plugin module '" + namespace + ":" + moduleName + "' already registered.");
-                } else {
-                    console.debug("Jenkins global module '" + moduleName + "' already registered.");
-                }
-                return;
+    try {
+        var moduleQName = (namespace ? namespace + ':' : '') + moduleName;
+        var moduleSpec = new ModuleSpec(moduleQName);
+        var moduleNamespaceObj = internal.getModuleNamespaceObj(moduleSpec);
+        var moduleLoadName = moduleSpec.getLoadBundleName();
+
+        if (moduleNamespaceObj[moduleLoadName]) {
+            if (namespace) {
+                console.debug("Jenkins plugin module '" + namespace + ":" + moduleName + "' already registered.");
+            } else {
+                console.debug("Jenkins global module '" + moduleName + "' already registered.");
             }
-            
-            if (!module) {
-                module = {
-                    exports: {}
-                };
-            } else if (module.exports === undefined) {
-                module = {
-                    exports: module
-                };
-            }
-            moduleNamespaceObj[moduleName] = module;
-            
-            // Notify all that the module has been registered. See internal.loadModule also.
-            internal.notifyModuleExported(moduleSpec, module.exports);
-        } catch (e) {
-            console.error(e);
-            if (onError) {
-                onError(e);
-            }
+            return;
         }
-    });
+
+        if (!module) {
+            module = {
+                exports: {}
+            };
+        } else if (module.exports === undefined) {
+            module = {
+                exports: module
+            };
+        }
+        moduleNamespaceObj[moduleLoadName] = module;
+
+        // Notify all that the module has been registered. See internal.loadModule also.
+        internal.notifyModuleExported(moduleSpec, module.exports);
+    } catch (e) {
+        console.error(e);
+        if (onError) {
+            onError(e);
+        }
+    }
 };
 
 /**
@@ -169,16 +194,14 @@ exports.export = function(namespace, moduleName, module, onError) {
  * @param onError On error callback;
  */
 exports.addModuleCSSToPage = function(namespace, moduleName, onError) {
-    internal.onReady(function() {
-        try {
-            internal.addModuleCSSToPage(namespace, moduleName);
-        } catch (e) {
-            console.error(e);
-            if (onError) {
-                onError(e);
-            }
+    try {
+        internal.addModuleCSSToPage(namespace, moduleName);
+    } catch (e) {
+        console.error(e);
+        if (onError) {
+            onError(e);
         }
-    });
+    }
 };
 
 /**
@@ -189,16 +212,14 @@ exports.addModuleCSSToPage = function(namespace, moduleName, onError) {
  * @param onError On error callback;
  */
 exports.addPluginCSSToPage = function(pluginName, cssPath, onError) {
-    internal.onReady(function() {
-        try {
-            internal.addPluginCSSToPage(pluginName, cssPath);
-        } catch (e) {
-            console.error(e);
-            if (onError) {
-                onError(e);
-            }
+    try {
+        internal.addPluginCSSToPage(pluginName, cssPath);
+    } catch (e) {
+        console.error(e);
+        if (onError) {
+            onError(e);
         }
-    });
+    }
 };
 
 /**
@@ -217,20 +238,18 @@ exports.toCSSId = function (cssPath, namespace) {
  * @param onError On error callback;
  */
 exports.addCSSToPage = function(cssPath, onError) {
-    internal.onReady(function() {
-        try {
-            if (cssPath.indexOf(internal.getAdjunctURL()) === 0) {
-                internal.addCSSToPage(undefined, cssPath);
-            } else {
-                internal.addCSSToPage(undefined, internal.getRootURL() + '/' + cssPath);
-            }
-        } catch (e) {
-            console.error(e);
-            if (onError) {
-                onError(e);
-            }
+    try {
+        if (cssPath.indexOf(internal.getAdjunctURL()) === 0) {
+            internal.addCSSToPage(undefined, cssPath);
+        } else {
+            internal.addCSSToPage(undefined, internal.getRootURL() + '/' + cssPath);
         }
-    });
+    } catch (e) {
+        console.error(e);
+        if (onError) {
+            onError(e);
+        }
+    }
 };
 
 /**
@@ -249,9 +268,7 @@ exports.addCSSToPage = function(cssPath, onError) {
  * @param options Optional script load options object. See above.
  */
 exports.addScript = function(scriptSrc, options) {
-    internal.onReady(function() {
-        internal.addScript(scriptSrc, options);
-    });    
+    internal.addScript(scriptSrc, options);
 };
 
 /**

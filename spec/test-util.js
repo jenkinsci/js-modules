@@ -10,7 +10,7 @@ exports.onJenkinsPage = function(testFunc, content) {
     }
     jsdom.env(content, [],
         function (errors, window) {
-            require("window-handle").setWindow(window);
+            global.window = window;
             require("../js/internal").clearJenkinsGlobal();
             testFunc();
         }

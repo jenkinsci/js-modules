@@ -1,27 +1,40 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2016, CloudBees, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 var promise = require("./promise");
-var windowHandle = require("window-handle");
+var ModuleSpec = require('./ModuleSpec');
+
 var jenkinsCIGlobal;
 var globalInitListeners = [];
 var whoami;
 
 exports.whoami = function(moduleQName) {
     if (moduleQName) {
-        whoami = exports.parseResourceQName(moduleQName);
+        whoami = new ModuleSpec(moduleQName);
         whoami.nsProvider = getBundleNSProviderFromScriptElement(whoami.namespace, whoami.moduleName);
     }
     return whoami;
-};
-
-exports.onReady = function(callback) {
-    // This allows test based initialization of js-modules when there might 
-    // not yet be a global window object.
-    if (jenkinsCIGlobal) {
-        callback();
-    } else {
-        windowHandle.getWindow(function() {
-            callback();
-        });
-    }    
 };
 
 exports.onJenkinsGlobalInit = function(callback) {
@@ -47,7 +60,6 @@ exports.getJenkins = function() {
     if (jenkinsCIGlobal) {
         return jenkinsCIGlobal;
     }
-    var window = windowHandle.getWindow();
     if (window.jenkinsCIGlobal) {
         jenkinsCIGlobal = window.jenkinsCIGlobal;
     } else {
@@ -64,7 +76,7 @@ exports.getModuleNamespaceObj = function(moduleSpec) {
     } else {
         return exports.getGlobalModules();
     }
-}
+};
 
 exports.getNamespace = function(namespaceName) {
     var namespaces = exports.getNamespaces();
@@ -80,41 +92,35 @@ exports.getNamespace = function(namespaceName) {
 
 exports.import = function(moduleQName, onRegisterTimeout) {
     return promise.make(function (resolve, reject) {
-        // Some functions here needs to access the 'window' global. We want to make sure that
-        // exists before attempting to fulfill the require operation. It may not exists
-        // immediately in a test env.
-        exports.onReady(function() {
-            var moduleSpec = exports.parseResourceQName(moduleQName);
-            var module = exports.getModule(moduleSpec);
-            
-            if (module) {
-                // module already loaded
-                resolve(module.exports);
-            } else {
-                if (onRegisterTimeout === 0) {
-                    if (moduleSpec.namespace) {
-                        throw 'Module ' + moduleSpec.namespace + ':' + moduleSpec.moduleName + ' require failure. Async load mode disabled.';
-                    } else {
-                        throw 'Global module ' + moduleSpec.moduleName + ' require failure. Async load mode disabled.';
-                    }
-                }
+        var moduleSpec = new ModuleSpec(moduleQName);
+        var module = exports.getModule(moduleSpec);
 
-                // module not loaded. Load async, fulfilling promise once registered
-                exports.loadModule(moduleSpec, onRegisterTimeout)
-                    .onFulfilled(function (moduleExports) {
-                        resolve(moduleExports);
-                    })
-                    .onRejected(function (error) {
-                        reject(error);
-                    });
+        if (module) {
+            // module already loaded
+            resolve(module.exports);
+        } else {
+            if (onRegisterTimeout === 0) {
+                if (moduleSpec.namespace) {
+                    throw new Error('Module ' + moduleSpec.namespace + ':' + moduleSpec.moduleName + ' require failure. Async load mode disabled.');
+                } else {
+                    throw new Error('Global module ' + moduleSpec.moduleName + ' require failure. Async load mode disabled.');
+                }
             }
-        });
+
+            // module not loaded. Load async, fulfilling promise once registered
+            exports.loadModule(moduleSpec, onRegisterTimeout)
+                .onFulfilled(function (moduleExports) {
+                    resolve(moduleExports);
+                })
+                .onRejected(function (error) {
+                    reject(error);
+                });
+        }
     });    
 };
 
 exports.loadModule = function(moduleSpec, onRegisterTimeout) {
-    var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
-    var module = moduleNamespaceObj[moduleSpec.moduleName];
+    var module = exports.getModule(moduleSpec);
     
     if (module) {
         // Module already loaded. This prob shouldn't happen.
@@ -139,7 +145,7 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
                     if (moduleSpec.namespace) {
                         errorDetail = "Timed out waiting on module '" + moduleSpec.namespace + ":" + moduleSpec.moduleName + "' to load.";
                     } else {
-                        errorDetail = "Timed out waiting on global module '" + moduleSpec.moduleName + "' to load.";
+                        errorDetail = "Timed out waiting on module '" + moduleSpec.moduleName + "' to load.";
                     }                    
                     console.error('Module load failure: ' + errorDetail);
 
@@ -158,7 +164,24 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
         });
     }
     
-    var loadingModule = getLoadingModule(moduleNamespaceObj, moduleSpec.moduleName);
+    var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
+    var loadModuleName = moduleSpec.getLoadBundleName();
+    var loadVersion = moduleSpec.getLoadBundleVersion();
+    var doScriptLoad = true;
+    
+    if (loadVersion) {
+        // If a version was specified then we only do the script load if a
+        // specific version was provided i.e. loading does not get triggered
+        // by imports that specify non-specific version numbers e.g. "any"
+        // or "1.2.x". A specific version number would be e.g. "1.2.3" i.e.
+        // fully qualified. When loading is not triggered, the import is depending
+        // on another import (with a specific version) or on another bundle to do an
+        // export of an internal dependency i.e. on another bundle "providing"
+        // the module by exporting it.
+        doScriptLoad = loadVersion.isSpecific();
+    }
+    
+    var loadingModule = getLoadingModule(moduleNamespaceObj, loadModuleName);
     if (!loadingModule.waitList) {
         loadingModule.waitList = [];
     }
@@ -168,10 +191,8 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
     try {
         return waitForRegistration(loadingModule, onRegisterTimeout);
     } finally {
-        // We can auto/dynamic load modules in a non-global namespace. Global namespace modules
-        // need to make sure they load themselves (via an adjunct, or whatever).
-        if (moduleSpec.namespace) {
-            var scriptId = exports.toModuleId(moduleSpec.namespace, moduleSpec.moduleName) + ':js';
+        if (doScriptLoad) {
+            var scriptId = exports.toModuleId(moduleSpec.namespace, loadModuleName) + ':js';
             var scriptSrc = exports.toModuleSrc(moduleSpec, 'js');
             var scriptEl = exports.addScript(scriptSrc, {
                 scriptId: scriptId,
@@ -194,7 +215,7 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
                 // See getBundleNSProviderFromScriptElement.
                 scriptEl.setAttribute('data-jenkins-module-nsProvider', moduleSpec.nsProvider);
                 scriptEl.setAttribute('data-jenkins-module-namespace', moduleSpec.namespace);
-                scriptEl.setAttribute('data-jenkins-module-moduleName', moduleSpec.moduleName);
+                scriptEl.setAttribute('data-jenkins-module-moduleName', loadModuleName);
             }
         }
     }
@@ -250,7 +271,7 @@ exports.addScript = function(scriptSrc, options) {
         normalizedOptions.scriptSrcBase = getAdjunctURL() + '/';
     }
 
-    var document = windowHandle.getWindow().document;
+    var document = window.document;
     var head = exports.getHeadElement();
     var script = document.getElementById(normalizedOptions.scriptId);
 
@@ -314,7 +335,7 @@ exports.addScript = function(scriptSrc, options) {
 
 exports.notifyModuleExported = function(moduleSpec, moduleExports) {
     var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
-    var loadingModule = getLoadingModule(moduleNamespaceObj, moduleSpec.moduleName);
+    var loadingModule = getLoadingModule(moduleNamespaceObj, moduleSpec.getLoadBundleName());
     
     loadingModule.loaded = true;
     if (loadingModule.waitList) {
@@ -343,7 +364,7 @@ exports.toCSSId = function (cssPath, namespace) {
 };
 
 exports.addCSSToPage = function(namespace, cssPath, cssElId) {
-    var document = windowHandle.getWindow().document;
+    var document = window.document;
     
     if (cssElId === undefined) {
         cssElId = exports.toCSSId(cssPath, namespace);
@@ -393,7 +414,7 @@ exports.getNamespaces = function() {
 };
 
 exports.toModuleId = function(namespace, moduleName) {
-    return 'jenkins-js-module:' + namespace + ':' + moduleName;
+    return 'jenkins-js-module:' + (namespace ? namespace + ':' : '') + moduleName;
 };
 
 exports.toModuleSrc = function(moduleSpec, srcType) {
@@ -414,11 +435,11 @@ exports.toModuleSrc = function(moduleSpec, srcType) {
 
     var srcPath = undefined;
     if (srcType === 'js') {
-        srcPath = moduleSpec.moduleName + '.js';
+        srcPath = moduleSpec.getLoadBundleFileNamePrefix() + '.js';
     } else if (srcType === 'css') {
-        srcPath = moduleSpec.moduleName + '/style.css';
+        srcPath = moduleSpec.getLoadBundleFileNamePrefix() + '/style.css';
     } else {
-        throw 'Unsupported srcType "'+ srcType + '".';
+        throw new Error('Unsupported srcType "'+ srcType + '".');
     }
 
     if (nsProvider === 'adjuncts') {
@@ -428,7 +449,7 @@ exports.toModuleSrc = function(moduleSpec, srcType) {
     } else if (nsProvider === 'core-assets') {
         return exports.getCoreAssetsJSModulesPath(moduleSpec.namespace) + '/' + srcPath;
     } else {
-        throw 'Unsupported namespace provider: ' + nsProvider;
+        throw new Error('Unsupported namespace provider: ' + nsProvider);
     }
 };
 
@@ -453,10 +474,9 @@ exports.getPluginPath = function(pluginId) {
 };
 
 exports.getHeadElement = function() {
-    var window = windowHandle.getWindow();
     var docHead = window.document.getElementsByTagName("head");
     if (!docHead || docHead.length == 0) {
-        throw 'No head element found in document.';
+        throw new Error('No head element found in document.');
     }
     return docHead[0];
 };
@@ -468,49 +488,29 @@ exports.setRootURL = function(url) {
     jenkinsCIGlobal.rootURL = url;
 };
 
-exports.parseResourceQName = function(resourceQName) {
-    var qNameTokens = resourceQName.split(":");
-    if (qNameTokens.length === 2) {
-        var namespace = qNameTokens[0].trim();
-        var nsTokens = namespace.split("/");
-        var namespaceProvider = undefined;
-        if (nsTokens.length === 2) {
-            namespaceProvider = nsTokens[0].trim();
-            namespace = nsTokens[1].trim();
-            if (namespaceProvider !== 'plugin' && namespaceProvider !== 'core-assets') {
-                console.error('Unsupported module namespace provider "' + namespaceProvider + '". Setting to undefined.');
-                namespaceProvider = undefined;
+exports.getModule = function(moduleSpec) {
+    var namespace = exports.getModuleNamespaceObj(moduleSpec);
+    
+    if (!moduleSpec.moduleVersion) {
+        return namespace[moduleSpec.moduleName];
+    } else {
+        for (var i = 0; i < moduleSpec.moduleCompatVersions.length; i++) {
+            var moduleCompatVersion = moduleSpec.moduleCompatVersions[i];
+            var module = namespace[moduleSpec.moduleName + '@' + moduleCompatVersion.raw];
+            if (module) {
+                return module;
             }
         }
-        return {
-            nsProvider: namespaceProvider,
-            namespace: namespace,
-            moduleName: qNameTokens[1].trim()
-        };
-    } else {
-        // The module/bundle is not in a namespace and doesn't
-        // need to be loaded i.e. it will load itself and export.
-        return {
-            moduleName: qNameTokens[0].trim()
-        };
     }
-};
-
-exports.getModule = function(moduleSpec) {
-    if (moduleSpec.namespace) {
-        var plugin = exports.getNamespace(moduleSpec.namespace);
-        return plugin[moduleSpec.moduleName];
-    } else {
-        var globals = exports.getGlobalModules();
-        return globals[moduleSpec.moduleName];
-    }
+    
+    return undefined;
 };
 
 exports.getModuleSpec = function(moduleQName) {
-    var moduleSpec = exports.parseResourceQName(moduleQName);
+    var moduleSpec = new ModuleSpec(moduleQName);
     var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
     if (moduleNamespaceObj) {
-        var loading = getLoadingModule(moduleNamespaceObj, moduleSpec.moduleName);
+        var loading = getLoadingModule(moduleNamespaceObj, moduleSpec.getLoadBundleName());
         if (loading && loading.moduleSpec) {
             return loading.moduleSpec;
         }
@@ -541,7 +541,7 @@ function getRootURL() {
         // Backward compatibility - used to use a 'resurl' attribute.
         rootURL = getAttribute(docHead, "resurl");
         if (rootURL === undefined || rootURL === null) {
-            throw "Attribute 'data-rooturl' not defined on the document <head> element.";
+            throw new Error("Attribute 'data-rooturl' not defined on the document <head> element.");
         }
     }
 
@@ -567,7 +567,7 @@ function getAdjunctURL() {
         // to be an adjunct url.
         adjunctURL = getAttribute(docHead, "resurl");
         if (adjunctURL === undefined || adjunctURL === null) {
-            throw "Attribute 'data-adjuncturl' not defined on the document <head> element.";
+            throw new Error("Attribute 'data-adjuncturl' not defined on the document <head> element.");
         }
         // Replace the first occurrence of 'static/' with 'adjuncts/' 
         adjunctURL = adjunctURL.replace('static\/', 'adjuncts\/');
@@ -581,7 +581,7 @@ function getAdjunctURL() {
 }
 
 function createElement(name) {
-    var document = windowHandle.getWindow().document;
+    var document = window.document;
     return document.createElement(name);
 }
 
