@@ -61,7 +61,7 @@ describe("index.js", function () {
             // via adding of a <script> element to the page DOM. That plugin module
             // is then responsible for calling 'export', which should trigger
             // the notify etc
-            jenkins.export('pluginA', 'mathUtils', {
+            jenkins.exportModule('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -84,7 +84,7 @@ describe("index.js", function () {
             var jenkins = require("../js/index");
 
             // Register the module before calling require. See above test too.
-            jenkins.export('pluginA', 'mathUtils', {
+            jenkins.exportModule('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -128,12 +128,12 @@ describe("index.js", function () {
                 }); // timeout before Jasmine does
 
             // Now mimic registering of the plugin modules.
-            jenkins.export('pluginA', 'mathUtils', {
+            jenkins.exportModule('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
             });
-            jenkins.export('pluginB', 'timeUtils', {
+            jenkins.exportModule('pluginB', 'timeUtils', {
                 now: function() {
                     return new Date(1000000000000);
                 }
@@ -197,7 +197,7 @@ describe("index.js", function () {
                 });
 
             // Now mimic registering of the plugin modules.
-            jenkins.export('jquery', 'jquery2', {});
+            jenkins.exportModule('jquery', 'jquery2', {});
         });
     });
 
@@ -236,7 +236,7 @@ describe("index.js", function () {
                 });
 
             // Now mimic registering of the plugin modules.
-            jenkins.export('jquery', 'jquery2', {});
+            jenkins.exportModule('jquery', 'jquery2', {});
         });
     });
 
@@ -245,12 +245,12 @@ describe("index.js", function () {
             var jenkins = require("../js/index");
             
             // Register the plugin modules before requiring.
-            jenkins.export('pluginA', 'mathUtils', {
+            jenkins.exportModule('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
             });
-            jenkins.export('pluginB', 'timeUtils', {
+            jenkins.exportModule('pluginB', 'timeUtils', {
                 now: function() {
                     return new Date(1000000000000);
                 }
@@ -287,7 +287,7 @@ describe("index.js", function () {
                 }); // timeout before Jasmine does
             
             // Now mimic registering of the plugin modules.
-            jenkins.export('pluginA', 'mathUtils', {
+            jenkins.exportModule('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -318,12 +318,12 @@ describe("index.js", function () {
                 }); // timeout before Jasmine does
             
             // Now mimic registering of the global modules (plugin name undefined).
-            jenkins.export(undefined, 'mathUtils', {
+            jenkins.exportModule(undefined, 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
             });
-            jenkins.export(undefined, 'timeUtils', {
+            jenkins.exportModule(undefined, 'timeUtils', {
                 now: function() {
                     return new Date(1000000000000);
                 }
@@ -359,8 +359,8 @@ describe("index.js", function () {
                 }); // timeout before Jasmine does
             
             // Now mimic registering of the modules, but without actual "modules" i.e. 3rd param not defined.
-            jenkins.export(undefined, 'mathUtils');
-            jenkins.export('pluginB', 'timeUtils');
+            jenkins.exportModule(undefined, 'mathUtils');
+            jenkins.exportModule('pluginB', 'timeUtils');
         });
     });   
     
@@ -528,7 +528,7 @@ describe("index.js", function () {
     it("- test rootURL/resURL not defined", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
-            jenkins.export('pluginA', 'mathUtils', {
+            jenkins.exportModule('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -559,7 +559,7 @@ describe("index.js", function () {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             jenkins.setRootURL('/jenkins');
-            jenkins.export('pluginA', 'mathUtils', {
+            jenkins.exportModule('pluginA', 'mathUtils', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }

@@ -34,7 +34,7 @@ describe("index.js", function () {
             // via adding of a <script> element to the page DOM. That plugin module
             // is then responsible for calling 'export', which should trigger
             // the notify etc
-            jsmodules.export('pluginA', 'mathUtils@1.2.3', {
+            jsmodules.exportModule('pluginA', 'mathUtils@1.2.3', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -77,7 +77,7 @@ describe("index.js", function () {
             // via adding of a <script> element to the page DOM. That plugin module
             // is then responsible for calling 'export', which should trigger
             // the notify etc
-            jsmodules.export(undefined, 'mathUtils@1.2.3', {
+            jsmodules.exportModule(undefined, 'mathUtils@1.2.3', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -121,7 +121,7 @@ describe("index.js", function () {
             // via adding of a <script> element to the page DOM. That plugin module
             // is then responsible for calling 'export', which should trigger
             // the notify etc
-            jsmodules.export(undefined, 'mathUtils@1.2.3', {
+            jsmodules.exportModule(undefined, 'mathUtils@1.2.3', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -140,7 +140,7 @@ describe("index.js", function () {
             var jsmodules = getJSModules();
 
             // Pre load/export the "any"
-            jsmodules.export(undefined, 'mathUtils@any', {
+            jsmodules.exportModule(undefined, 'mathUtils@any', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -182,7 +182,7 @@ describe("index.js", function () {
             
             // Now do the export so the import can be fullfilled and the test
             // can finish out cleanly
-            jsmodules.export(undefined, 'mathUtils@any', {
+            jsmodules.exportModule(undefined, 'mathUtils@any', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -214,7 +214,7 @@ describe("index.js", function () {
             
             // Now do the export so the import can be fullfilled and the test
             // can finish out cleanly
-            jsmodules.export(undefined, 'mathUtils@1.2.x', {
+            jsmodules.exportModule(undefined, 'mathUtils@1.2.x', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }

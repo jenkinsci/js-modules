@@ -144,7 +144,7 @@ exports.requireModule = function(moduleQName) {
  * the loading of this module.
  * @param onError On error callback;
  */
-exports.export = function(namespace, moduleName, module, onError) {
+exports.exportModule = function(namespace, moduleName, module, onError) {
     try {
         var moduleQName = (namespace ? namespace + ':' : '') + moduleName;
         var moduleSpec = new ModuleSpec(moduleQName);
