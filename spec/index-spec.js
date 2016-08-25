@@ -12,7 +12,7 @@ describe("index.js", function () {
             var jenkins = require("../js/index");
             
             try {
-                jenkins.require('pluginA:mathUtils');
+                jenkins.requireModule('pluginA:mathUtils');
             } catch (e) {
                 expect(e.message).toBe("Unable to perform synchronous 'require' for module 'pluginA:mathUtils'. This module is not pre-loaded. The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
             }
@@ -74,7 +74,7 @@ describe("index.js", function () {
             expect(scriptEl).toBe(null);
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jenkins.require('pluginA:mathUtils');
+            var mathUtils = jenkins.requireModule('pluginA:mathUtils');
             expect(mathUtils).toBeDefined();
         });
     });
@@ -184,14 +184,14 @@ describe("index.js", function () {
                     expect(bootstrapCSSEl.getAttribute('href')).toBe('/jenkins/assets/bootstrap/jsmodules/bootstrap3/style.css');
 
                     // Test require ...
-                    jenkins.require('jquery:jquery2');
+                    jenkins.requireModule('jquery:jquery2');
                     // Specifying the namespace provider here should be irrelevant coz
                     // the bundle/module is already registered. That's the main point here i.e.
                     // the nsProvider is only of interest IF the module needs to be loaded i.e. it tells
                     // where to get the module from (the provider). If it's already loaded, then we don't
                     // care where it was loaded from.
-                    jenkins.require('core-assets/jquery:jquery2');
-                    jenkins.require('plugin/jquery:jquery2');
+                    jenkins.requireModule('core-assets/jquery:jquery2');
+                    jenkins.requireModule('plugin/jquery:jquery2');
 
                     done();
                 });
@@ -223,14 +223,14 @@ describe("index.js", function () {
                     expect(jqueryScriptEl.getAttribute('src')).toBe('/jenkins/assets/jquery/jsmodules/jquery2.js');
 
                     // Test require ...
-                    jenkins.require('jquery:jquery2');
+                    jenkins.requireModule('jquery:jquery2');
                     // Specifying the namespace provider here should be irrelevant coz
                     // the bundle/module is already registered. That's the main point here i.e.
                     // the nsProvider is only of interest IF the module needs to be loaded i.e. it tells
                     // where to get the module from (the provider). If it's already loaded, then we don't
                     // care where it was loaded from.
-                    jenkins.require('core-assets/jquery:jquery2');
-                    jenkins.require('plugin/jquery:jquery2');
+                    jenkins.requireModule('core-assets/jquery:jquery2');
+                    jenkins.requireModule('plugin/jquery:jquery2');
 
                     done();
                 });
@@ -564,7 +564,7 @@ describe("index.js", function () {
                     return lhs + rhs;
                 }
             });
-            jenkins.require('pluginA:mathUtils');
+            jenkins.requireModule('pluginA:mathUtils');
             done();
         }, '<html><head></head></html>');
     });

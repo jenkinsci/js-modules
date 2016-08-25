@@ -124,7 +124,7 @@ exports.importModule = function() {
  *
  * @return The module.
  */
-exports.require = function(moduleQName) {
+exports.requireModule = function(moduleQName) {
     var parsedModuleName = new ModuleSpec(moduleQName);
     var module = internal.getModule(parsedModuleName);    
     if (!module) {

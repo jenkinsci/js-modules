@@ -47,7 +47,7 @@ describe("index.js", function () {
             expect(scriptEl).toBe(null);
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jsmodules.require('pluginA:mathUtils@1.2.3');
+            var mathUtils = jsmodules.requireModule('pluginA:mathUtils@1.2.3');
             expect(mathUtils).toBeDefined();
             
             done();               
@@ -90,7 +90,7 @@ describe("index.js", function () {
             expect(scriptEl).toBe(null);
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jsmodules.require('mathUtils@1.2.3');
+            var mathUtils = jsmodules.requireModule('mathUtils@1.2.3');
             expect(mathUtils).toBeDefined();
             
             done();               
@@ -128,7 +128,7 @@ describe("index.js", function () {
             });
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jsmodules.require('mathUtils@1.2.3');
+            var mathUtils = jsmodules.requireModule('mathUtils@1.2.3');
             expect(mathUtils).toBeDefined();
             
             done();               
@@ -157,7 +157,7 @@ describe("index.js", function () {
             expect(document.getElementsByTagName('script').length).toBe(0);
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jsmodules.require('mathUtils@any');
+            var mathUtils = jsmodules.requireModule('mathUtils@any');
             expect(mathUtils).toBeDefined();
             
             done();               
@@ -189,7 +189,7 @@ describe("index.js", function () {
             });
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jsmodules.require('mathUtils@any');
+            var mathUtils = jsmodules.requireModule('mathUtils@any');
             expect(mathUtils).toBeDefined();
             
             done();               
@@ -221,7 +221,7 @@ describe("index.js", function () {
             });
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jsmodules.require('mathUtils@1.2.x');
+            var mathUtils = jsmodules.requireModule('mathUtils@1.2.x');
             expect(mathUtils).toBeDefined();
             
             done();               
