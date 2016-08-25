@@ -15,7 +15,7 @@ describe("index.js", function () {
         testUtil.onJenkinsPage(function() {
             var jsmodules = getJSModules();
             
-            jsmodules.import('pluginA:mathUtils@1.2.3', 2000).onFulfilled(function(module) {
+            jsmodules.importModule('pluginA:mathUtils@1.2.3', 2000).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
             }); // timeout before Jasmine does
             
@@ -58,7 +58,7 @@ describe("index.js", function () {
         testUtil.onJenkinsPage(function() {
             var jsmodules = getJSModules();
             
-            jsmodules.import('mathUtils@1.2.3', 2000).onFulfilled(function(module) {
+            jsmodules.importModule('mathUtils@1.2.3', 2000).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
             }); // timeout before Jasmine does
             
@@ -101,7 +101,7 @@ describe("index.js", function () {
         testUtil.onJenkinsPage(function() {
             var jsmodules = getJSModules();
             
-            jsmodules.import('mathUtils@any|1.2.3', 2000).onFulfilled(function(module) {
+            jsmodules.importModule('mathUtils@any|1.2.3', 2000).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
             }); // timeout before Jasmine does
             
@@ -146,7 +146,7 @@ describe("index.js", function () {
                 }
             });
             
-            jsmodules.import('mathUtils@any|1.2.3', 2000).onFulfilled(function(module) {
+            jsmodules.importModule('mathUtils@any|1.2.3', 2000).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
             }); // timeout before Jasmine does
             
@@ -170,7 +170,7 @@ describe("index.js", function () {
 
             // Don't pre load/export the "any"
            
-            jsmodules.import('mathUtils@any', 2000).onFulfilled(function(module) {
+            jsmodules.importModule('mathUtils@any', 2000).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
             }); // timeout before Jasmine does
             
@@ -202,7 +202,7 @@ describe("index.js", function () {
 
             // Don't pre load/export the "any"
            
-            jsmodules.import('mathUtils@1.2.x', 2000).onFulfilled(function(module) {
+            jsmodules.importModule('mathUtils@1.2.x', 2000).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
             }); // timeout before Jasmine does
             

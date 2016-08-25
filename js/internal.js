@@ -90,7 +90,7 @@ exports.getNamespace = function(namespaceName) {
     return namespace;
 };
 
-exports.import = function(moduleQName, onRegisterTimeout) {
+exports.importModule = function(moduleQName, onRegisterTimeout) {
     return promise.make(function (resolve, reject) {
         var moduleSpec = new ModuleSpec(moduleQName);
         var module = exports.getModule(moduleSpec);
