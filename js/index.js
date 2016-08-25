@@ -132,7 +132,7 @@ exports.requireModule = function(moduleQName) {
             "The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
     }
     return module.exports;
-}
+};
 
 /**
  * Export a module.
