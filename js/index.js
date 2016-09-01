@@ -52,9 +52,9 @@ exports.whoami = function(moduleQName) {
  *
  * @return A Promise, allowing async load of all modules. The promise is only fulfilled when all modules are loaded.
  */
-exports.import = function() {
+exports.importModule = function() {
     if (arguments.length === 1) {
-        return internal.import(arguments[0], onRegisterTimeout);        
+        return internal.importModule(arguments[0], onRegisterTimeout);        
     }
     
     var moduleQNames = [];    
@@ -92,7 +92,7 @@ exports.import = function() {
         // doRequire for each module
         for (var i = 0; i < moduleQNames.length; i++) {           
             function doRequire(moduleQName) {
-                var promise = internal.import(moduleQName, onRegisterTimeout);
+                var promise = internal.importModule(moduleQName, onRegisterTimeout);
                 var fulfillment = {
                     promise: promise,
                     value: undefined
@@ -124,7 +124,7 @@ exports.import = function() {
  *
  * @return The module.
  */
-exports.require = function(moduleQName) {
+exports.requireModule = function(moduleQName) {
     var parsedModuleName = new ModuleSpec(moduleQName);
     var module = internal.getModule(parsedModuleName);    
     if (!module) {
@@ -132,7 +132,7 @@ exports.require = function(moduleQName) {
             "The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
     }
     return module.exports;
-}
+};
 
 /**
  * Export a module.
@@ -144,7 +144,7 @@ exports.require = function(moduleQName) {
  * the loading of this module.
  * @param onError On error callback;
  */
-exports.export = function(namespace, moduleName, module, onError) {
+exports.exportModule = function(namespace, moduleName, module, onError) {
     try {
         var moduleQName = (namespace ? namespace + ':' : '') + moduleName;
         var moduleSpec = new ModuleSpec(moduleQName);
@@ -309,7 +309,7 @@ internal.onJenkinsGlobalInit(function(jenkinsCIGlobal) {
         // Put the functions on an object called '_internal' as a way
         // of hinting to people to not use it.
         jenkinsCIGlobal._internal = {
-            import: exports.import,
+            importModule: exports.importModule,
             addScript: internal.addScript
         };
     }

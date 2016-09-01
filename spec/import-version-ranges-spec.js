@@ -15,7 +15,7 @@ describe("index.js", function () {
         testUtil.onJenkinsPage(function() {
             var jsmodules = getJSModules();
             
-            jsmodules.import('pluginA:mathUtils@1.2.3', 2000).onFulfilled(function(module) {
+            jsmodules.importModule('pluginA:mathUtils@1.2.3', 2000).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
             }); // timeout before Jasmine does
             
@@ -34,7 +34,7 @@ describe("index.js", function () {
             // via adding of a <script> element to the page DOM. That plugin module
             // is then responsible for calling 'export', which should trigger
             // the notify etc
-            jsmodules.export('pluginA', 'mathUtils@1.2.3', {
+            jsmodules.exportModule('pluginA', 'mathUtils@1.2.3', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -47,7 +47,7 @@ describe("index.js", function () {
             expect(scriptEl).toBe(null);
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jsmodules.require('pluginA:mathUtils@1.2.3');
+            var mathUtils = jsmodules.requireModule('pluginA:mathUtils@1.2.3');
             expect(mathUtils).toBeDefined();
             
             done();               
@@ -58,7 +58,7 @@ describe("index.js", function () {
         testUtil.onJenkinsPage(function() {
             var jsmodules = getJSModules();
             
-            jsmodules.import('mathUtils@1.2.3', 2000).onFulfilled(function(module) {
+            jsmodules.importModule('mathUtils@1.2.3', 2000).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
             }); // timeout before Jasmine does
             
@@ -77,7 +77,7 @@ describe("index.js", function () {
             // via adding of a <script> element to the page DOM. That plugin module
             // is then responsible for calling 'export', which should trigger
             // the notify etc
-            jsmodules.export(undefined, 'mathUtils@1.2.3', {
+            jsmodules.exportModule(undefined, 'mathUtils@1.2.3', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
@@ -90,7 +90,7 @@ describe("index.js", function () {
             expect(scriptEl).toBe(null);
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jsmodules.require('mathUtils@1.2.3');
+            var mathUtils = jsmodules.requireModule('mathUtils@1.2.3');
             expect(mathUtils).toBeDefined();
             
             done();               
@@ -101,7 +101,7 @@ describe("index.js", function () {
         testUtil.onJenkinsPage(function() {
             var jsmodules = getJSModules();
             
-            jsmodules.import('mathUtils@any|1.2.3', 2000).onFulfilled(function(module) {
+            jsmodules.importModule('mathUtils@any|1.2.3', 2000).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
             }); // timeout before Jasmine does
             
@@ -121,14 +121,14 @@ describe("index.js", function () {
             // via adding of a <script> element to the page DOM. That plugin module
             // is then responsible for calling 'export', which should trigger
             // the notify etc
-            jsmodules.export(undefined, 'mathUtils@1.2.3', {
+            jsmodules.exportModule(undefined, 'mathUtils@1.2.3', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
             });
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jsmodules.require('mathUtils@1.2.3');
+            var mathUtils = jsmodules.requireModule('mathUtils@1.2.3');
             expect(mathUtils).toBeDefined();
             
             done();               
@@ -140,13 +140,13 @@ describe("index.js", function () {
             var jsmodules = getJSModules();
 
             // Pre load/export the "any"
-            jsmodules.export(undefined, 'mathUtils@any', {
+            jsmodules.exportModule(undefined, 'mathUtils@any', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
             });
             
-            jsmodules.import('mathUtils@any|1.2.3', 2000).onFulfilled(function(module) {
+            jsmodules.importModule('mathUtils@any|1.2.3', 2000).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
             }); // timeout before Jasmine does
             
@@ -157,7 +157,7 @@ describe("index.js", function () {
             expect(document.getElementsByTagName('script').length).toBe(0);
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jsmodules.require('mathUtils@any');
+            var mathUtils = jsmodules.requireModule('mathUtils@any');
             expect(mathUtils).toBeDefined();
             
             done();               
@@ -170,7 +170,7 @@ describe("index.js", function () {
 
             // Don't pre load/export the "any"
            
-            jsmodules.import('mathUtils@any', 2000).onFulfilled(function(module) {
+            jsmodules.importModule('mathUtils@any', 2000).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
             }); // timeout before Jasmine does
             
@@ -182,14 +182,14 @@ describe("index.js", function () {
             
             // Now do the export so the import can be fullfilled and the test
             // can finish out cleanly
-            jsmodules.export(undefined, 'mathUtils@any', {
+            jsmodules.exportModule(undefined, 'mathUtils@any', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
             });
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jsmodules.require('mathUtils@any');
+            var mathUtils = jsmodules.requireModule('mathUtils@any');
             expect(mathUtils).toBeDefined();
             
             done();               
@@ -202,7 +202,7 @@ describe("index.js", function () {
 
             // Don't pre load/export the "any"
            
-            jsmodules.import('mathUtils@1.2.x', 2000).onFulfilled(function(module) {
+            jsmodules.importModule('mathUtils@1.2.x', 2000).onFulfilled(function(module) {
                 expect(module.add(2,2)).toBe(4);
             }); // timeout before Jasmine does
             
@@ -214,14 +214,14 @@ describe("index.js", function () {
             
             // Now do the export so the import can be fullfilled and the test
             // can finish out cleanly
-            jsmodules.export(undefined, 'mathUtils@1.2.x', {
+            jsmodules.exportModule(undefined, 'mathUtils@1.2.x', {
                 add: function(lhs, rhs) {
                     return lhs + rhs;
                 }
             });
             
             // Make sure we can synchronously get the module.
-            var mathUtils = jsmodules.require('mathUtils@1.2.x');
+            var mathUtils = jsmodules.requireModule('mathUtils@1.2.x');
             expect(mathUtils).toBeDefined();
             
             done();               
