@@ -64,6 +64,8 @@ describe("ModuleSpec.js", function () {
         expect(new ModuleSpec('b@any|1.2.3|3.2.1').importAs()).toBe('b:b@1.2.3');
         expect(new ModuleSpec('@xorg/b@any|1.2.3|3.2.1').importAs()).toBe('xorg-b:xorg-b@1.2.3');
 
+        expect(new ModuleSpec('b@any|1.2.3-beta1').importAs()).toBe('b:b@1.2.3');
+        
         // And with namespaces
         expect(new ModuleSpec('core-assets/a:b').importAs()).toBe('core-assets/a:b');
         expect(new ModuleSpec('core-assets/b:@xorg/b@any|1.2.3|3.2.1').importAs()).toBe('core-assets/b:xorg-b@1.2.3');
