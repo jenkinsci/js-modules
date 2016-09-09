@@ -73,4 +73,23 @@ Version.prototype.isSpecific = function() {
     return (this.major !== undefined && this.minor !== undefined && this.patch !== undefined);
 };
 
+/**
+ * Get the load version string for this version number.
+ * <p/>
+ * This string should only ever include the major, minor and patch tokens
+ * of the version i.e. should never include a prerelease tag.
+ * @returns {string}
+ */
+Version.prototype.asLoadVersionString = function() {
+    if (!this.major || this.major === 'x') {
+        return undefined;
+    } else if (!this.minor || this.minor === 'x') {
+        return this.major + '-x';
+    } else if (!this.patch || this.patch === 'x') {
+        return this.major + '-' + this.minor + '-x';
+    } else {
+        return this.major + '-' + this.minor + '-' + this.patch;
+    }
+};
+
 module.exports = Version;

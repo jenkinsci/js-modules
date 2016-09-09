@@ -137,7 +137,7 @@ ModuleSpec.prototype.getLoadBundleFileNamePrefix = function() {
         // export of an internal dependency i.e. on another bundle "providing"
         // the module be exporting it.
         if (version.isSpecific()) {
-            return normalizedName + '-' + version.raw.replace(new RegExp('\\.', 'g'), '-');
+            return normalizedName + '-' + version.asLoadVersionString();
         } else {
             return undefined;
         }
