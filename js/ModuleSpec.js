@@ -94,7 +94,7 @@ ModuleSpec.prototype.getLoadBundleVersion = function() {
 ModuleSpec.prototype.getLoadBundleName = function() {
     var version = this.getLoadBundleVersion();
     if (version) {
-        return this.moduleName + '@' + version.raw;
+        return this.moduleName + '@' + version.asBaseVersionString();
     } else {
         return this.moduleName;
     }
@@ -118,7 +118,7 @@ ModuleSpec.prototype.importAs = function() {
         importAs = this.nsProvider + '/' + importAs;
     }
     if (version) {
-        importAs += '@' + version.raw;
+        importAs += '@' + version.asBaseVersionString();
     }
     
     return importAs;
@@ -137,7 +137,7 @@ ModuleSpec.prototype.getLoadBundleFileNamePrefix = function() {
         // export of an internal dependency i.e. on another bundle "providing"
         // the module be exporting it.
         if (version.isSpecific()) {
-            return normalizedName + '-' + version.raw.replace(new RegExp('\\.', 'g'), '-');
+            return normalizedName + '-' + version.asLoadVersionString();
         } else {
             return undefined;
         }
