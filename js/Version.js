@@ -24,11 +24,14 @@
 
 function Version(version) {
     this.raw = version;
+
+    // Remove leading non alphanum chars e.g. to
+    // convert "^1.2.3" to "1.2.3". If the version is something
+    // like "any" then the string will be trimmed to nothing and
+    // the next check catches it.
+    version = version.replace(/^(\D)/, "");
     
-    // The version string must start with a digit.
-    // It's not an error for it not to start with a number e.g. it can
-    // be "any" and we may introduce other aliases.
-    if (!version || version.length === 0 || isNaN(version.charAt(0))) {
+    if (!version || version.length === 0) {
         return;
     }
     

@@ -14,6 +14,16 @@ describe("Version.js", function () {
         expect(parsedVer.patch).toBe('3');
         expect(parsedVer.prerelease).toBe(undefined);
         expect(parsedVer.isSpecific()).toBe(true);
+        expect(parsedVer.asBaseVersionString()).toBe('1.2.3');
+        expect(parsedVer.asLoadVersionString()).toBe('1-2-3');
+
+        parsedVer = new Version('^1.2.3');
+        expect(parsedVer.major).toBe('1');
+        expect(parsedVer.minor).toBe('2');
+        expect(parsedVer.patch).toBe('3');
+        expect(parsedVer.prerelease).toBe(undefined);
+        expect(parsedVer.isSpecific()).toBe(true);
+        expect(parsedVer.asBaseVersionString()).toBe('1.2.3');
         expect(parsedVer.asLoadVersionString()).toBe('1-2-3');
 
         parsedVer = new Version('1.2.x');
@@ -29,6 +39,7 @@ describe("Version.js", function () {
         expect(parsedVer.patch).toBe('3');
         expect(parsedVer.prerelease).toBe('beta.1');
         expect(parsedVer.isSpecific()).toBe(true);
+        expect(parsedVer.asBaseVersionString()).toBe('1.2.3');
         expect(parsedVer.asLoadVersionString()).toBe('1-2-3');
         
         parsedVer = new Version('blah');
