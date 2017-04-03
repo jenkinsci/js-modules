@@ -33,7 +33,7 @@ Again, if none of this interests you at the moment, then that is not a problem. 
 GUI using the same techniques and technologies as before (server-side, Jelly etc).
 
 ### What is the difference between a "module" and a "bundle"?
-A "bundle" is a single JavaScript file that contains 1 or more [CommonJS] "modules".
+A "bundle" is a single JavaScript file that contains 1 or more [CommonJS] "modules", inlined into the file, with all `require`s resolved internally in the bundle.
 
 [CommonJS] modules employ a nice (easy to understand) synchronous module loading pattern via synchronous `require` statements.
 This works fine in a server type environment (ala NodeJS), but things get a bit weird and messy in the browser if these
