@@ -35,9 +35,9 @@ GUI using the same techniques and technologies as before (server-side, Jelly etc
 ### What is the difference between a "module" and a "bundle"?
 A "bundle" is a single JavaScript file that contains 1 or more [CommonJS] "modules".
 
-[CommonJS] modules employ a synchronous module loading pattern via synchronous `require` statements. This works fine
-in a server type environment (ala NodeJS), but things get a bit weird and messy in the browser if these modules need to be
-asynchronously loaded from the remote server (see [Why AMD?], as described on by [RequireJS]).
+[CommonJS] modules employ a nice (easy to understand) synchronous module loading pattern via synchronous `require` statements.
+This works fine in a server type environment (ala NodeJS), but things get a bit weird and messy in the browser if these
+modules need to be asynchronously loaded from the remote server (see [Why AMD?], as described on by [RequireJS]).
 
 A JavaScript "bundle" allows us to use [CommonJS] code __*and synchronous coding patterns*__ in the browser, while still
 maintaining the cleaner synchronous module loading of pure `require` statements. It does this by "bundling" all the
