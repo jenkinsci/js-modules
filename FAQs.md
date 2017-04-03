@@ -33,9 +33,21 @@ Again, if none of this interests you at the moment, then that is not a problem. 
 GUI using the same techniques and technologies as before (server-side, Jelly etc).
 
 ### What is the difference between a "module" and a "bundle"?
-A "bundle" is a single JavaScript file that contains 1 or more [CommonJS] "modules". We use [Browserify] to handle the creation of these bundles. It
-handles the process of making sure all the module `require` calls are resolvable within the "bundle" i.e. that the bundle
-has everything it needs to execute properly.
+A "bundle" is a single JavaScript file that contains 1 or more [CommonJS] "modules".
+
+[CommonJS] modules employ a synchronous module loading pattern via synchronous `require` statements. This works fine
+in a server type environment (ala NodeJS), but things get a bit weird and messy in the browser if these modules need to be
+asynchronously loaded from the remote server (see [Why AMD?], as described on by [RequireJS]).
+
+A JavaScript "bundle" allows us to use [CommonJS] code __*and synchronous coding patterns*__ in the browser, while still
+maintaining the cleaner synchronous module loading of pure `require` statements. It does this by "bundling" all the
+[CommonJS] modules associated with a top level "entry" module into a single JavaScript file that can be loaded "all at
+once" by the browser. The fact that all associated [CommonJS] modules are loaded at the same time means that all
+[CommonJS] `require` statements can be resolved synchronously, meaning we can avoid AMD style ugliness. This is something
+we feel is very important with respect to having long-term maintainable code.
+
+We use [Browserify] to handle the creation of these bundles. It handles the process of making sure all the module
+`require` calls are resolvable within the "bundle" i.e. that the bundle has everything it needs to execute properly.
 
 ### Do we really need bundles?
 In theory "no", but bundles provide 2 big benefits (and probably more):
@@ -104,3 +116,5 @@ See [jenkins-js-builder].
 [Keep Calm]: https://github.com/jenkinsci/js-modules#keep-calm
 [Framework libs]: https://github.com/jenkinsci/js-modules#framework-libs-jenkinscijs-libs
 [jenkins-js-builder]: https://github.com/jenkinsci/js-builder
+[RequireJS]: http://requirejs.org/
+[Why AMD?]: http://requirejs.org/docs/whyamd.html
