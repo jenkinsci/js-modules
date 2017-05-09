@@ -24,6 +24,7 @@
 
 var promise = require("./promise");
 var ModuleSpec = require('./ModuleSpec');
+var ResourceLocationResolver = require('./ResourceLocationResolver');
 
 var jenkinsCIGlobal;
 var globalInitListeners = [];
@@ -54,6 +55,12 @@ exports.initJenkinsGlobal = function() {
 exports.clearJenkinsGlobal = function() {    
     jenkinsCIGlobal = undefined;
     whoami = undefined;
+};
+
+exports.addResourceLocationResolver = function(resourceLocationResolver) {
+    var resolvers = getResourceLocationResolvers();
+    resolvers.push(resourceLocationResolver);
+    ResourceLocationResolver.sort(resolvers);
 };
 
 exports.getJenkins = function() {
@@ -163,9 +170,7 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
             });                    
         });
     }
-    
-    var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
-    var loadModuleName = moduleSpec.getLoadBundleName();
+
     var loadVersion = moduleSpec.getLoadBundleVersion();
     var doScriptLoad = true;
     
@@ -180,8 +185,8 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
         // the module by exporting it.
         doScriptLoad = loadVersion.isSpecific();
     }
-    
-    var loadingModule = getLoadingModule(moduleNamespaceObj, loadModuleName);
+
+    var loadingModule = getLoadingModule(moduleSpec);
     if (!loadingModule.waitList) {
         loadingModule.waitList = [];
     }
@@ -191,7 +196,12 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
     try {
         return waitForRegistration(loadingModule, onRegisterTimeout);
     } finally {
-        if (doScriptLoad) {
+        if (doScriptLoad && !loadingModule.loadedBy) {
+            // Capture the name of the bundle that triggered importing/loading
+            // of the bundle.
+            loadingModule.loadedBy = whoami;
+
+            var loadModuleName = moduleSpec.getLoadBundleName();
             var scriptId = exports.toModuleId(moduleSpec.namespace, loadModuleName) + ':js';
             var scriptSrc = exports.toModuleSrc(moduleSpec, 'js');
             var scriptEl = exports.addScript(scriptSrc, {
@@ -216,6 +226,8 @@ exports.loadModule = function(moduleSpec, onRegisterTimeout) {
                 scriptEl.setAttribute('data-jenkins-module-nsProvider', moduleSpec.nsProvider);
                 scriptEl.setAttribute('data-jenkins-module-namespace', moduleSpec.namespace);
                 scriptEl.setAttribute('data-jenkins-module-moduleName', loadModuleName);
+            } else {
+                loadingModule.loadedBy = undefined;
             }
         }
     }
@@ -334,8 +346,7 @@ exports.addScript = function(scriptSrc, options) {
 };
 
 exports.notifyModuleExported = function(moduleSpec, moduleExports) {
-    var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
-    var loadingModule = getLoadingModule(moduleNamespaceObj, moduleSpec.getLoadBundleName());
+    var loadingModule = getLoadingModule(moduleSpec);
     
     loadingModule.loaded = true;
     if (loadingModule.waitList) {
@@ -442,6 +453,16 @@ exports.toModuleSrc = function(moduleSpec, srcType) {
         throw new Error('Unsupported srcType "'+ srcType + '".');
     }
 
+    // Maybe there's a custom resource resolver for this resource.
+    var resourceLocationResolverFunc = getResourceLocationResolverFunc(moduleSpec);
+    if (resourceLocationResolverFunc) {
+        var resourcePath = resourceLocationResolverFunc(moduleSpec, srcPath);
+        if (resourcePath) {
+            return resourcePath;
+        }
+    }
+
+    // Default resource resolution ...
     if (nsProvider === 'adjuncts') {
         return exports.getAdjunctJSModulesPath(moduleSpec.namespace) + '/' + srcPath;
     } else if (nsProvider === 'plugin') {
@@ -510,13 +531,45 @@ exports.getModuleSpec = function(moduleQName) {
     var moduleSpec = new ModuleSpec(moduleQName);
     var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
     if (moduleNamespaceObj) {
-        var loading = getLoadingModule(moduleNamespaceObj, moduleSpec.getLoadBundleName());
+        var loading = getLoadingModule(moduleSpec);
         if (loading && loading.moduleSpec) {
             return loading.moduleSpec;
         }
     }
     return moduleSpec;
 };
+
+function getResourceLocationResolvers() {
+    var jenkinsCIGlobal = exports.getJenkins();
+    if (!jenkinsCIGlobal.resourceLocationResolvers) {
+        jenkinsCIGlobal.resourceLocationResolvers = [];
+    }
+    return jenkinsCIGlobal.resourceLocationResolvers;
+}
+
+function getResourceLocationResolverFunc(moduleSpec) {
+    var resolvers = getResourceLocationResolvers();
+
+    for (var i = 0; i < resolvers.length; i++) {
+        var resolver = resolvers[i];
+        if (resolver && resolver.canResolve(moduleSpec)) {
+            return resolver.resolverFunc;
+        }
+    }
+
+    // Failed to find a specific resolver for the supplied moduleSpec.
+    // In this case, lets try the resolver used to load the bundle
+    // that's currently loading this resource. Iow, resources should
+    // be loaded from the same location as the bundle that's triggering
+    // the loading of that resource. Obviously this is recursive up
+    // through the "parents".
+    var loadingModule = getLoadingModule(moduleSpec);
+    if (loadingModule.loadedBy) {
+        return getResourceLocationResolverFunc(loadingModule.loadedBy);
+    }
+
+    return undefined;
+}
 
 function getScriptId(scriptSrc, config) {
     if (typeof config === 'string') {
@@ -596,7 +649,10 @@ function getAttribute(element, attributeName) {
     }    
 }
 
-function getLoadingModule(moduleNamespaceObj, moduleName) {
+function getLoadingModule(moduleSpec) {
+    var moduleNamespaceObj = exports.getModuleNamespaceObj(moduleSpec);
+    var moduleName = moduleSpec.getLoadBundleName();
+
     if (!moduleNamespaceObj.loadingModules) {
         moduleNamespaceObj.loadingModules = {};
     }

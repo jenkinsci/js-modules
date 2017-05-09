@@ -182,6 +182,14 @@ exports.exportModule = function(namespace, moduleName, module, onError) {
 };
 
 /**
+ * Add a resource resolver.
+ * @param resourceLocationResolver The resource resolver.
+ */
+exports.addResourceLocationResolver = function(resourceLocationResolver) {
+    internal.addResourceLocationResolver(resourceLocationResolver);
+};
+
+/**
  * Add a module's CSS to the browser page.
  * 
  * <p>
