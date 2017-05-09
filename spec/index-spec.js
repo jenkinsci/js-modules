@@ -99,6 +99,50 @@ describe("index.js", function () {
         });
     });
 
+    it("- test import from some other location", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var ResourceLocationResolver = require('../js/ResourceLocationResolver');
+
+            jenkins.addResourceLocationResolver(
+                new ResourceLocationResolver(function(moduleSpec) {
+                    return (moduleSpec.namespace === 'pluginXternal');
+                }, function(moduleSpec, srcPath) {
+                    // Should result in the pluginXternal bundles getting loaded from
+                    // http://resources.acme.com/javascript/ .
+                    // See assertion check below.
+                    return "http://resources.acme.com/javascript/" + srcPath;
+                })
+            );
+
+            // Should pass immediately because export has already happened.
+            jenkins.importModule('pluginXternal:mathUtils', 0).onFulfilled(function(module) {
+                expect(module.add(2,2)).toBe(4);
+
+                var document = window.document;
+                var internal = require("../js/internal");
+                var moduleId = internal.toModuleId('pluginXternal', 'mathUtils') + ':js';
+
+                var scriptEl = document.getElementById(moduleId);
+
+                expect(scriptEl).toBeDefined();
+                // Check that the bundle resource was loaded from the other place.
+                // See the earlier call to jenkins.addResourceLocationResolver().
+                expect(scriptEl.getAttribute('src')).toBe('http://resources.acme.com/javascript/mathUtils.js');
+
+                done();
+            }); // disable async load mode
+
+
+            // Register the module before calling require. See above test too.
+            jenkins.exportModule('pluginXternal', 'mathUtils', {
+                add: function(lhs, rhs) {
+                    return lhs + rhs;
+                }
+            });
+        });
+    });
+
     it("- test import and export async successful", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
