@@ -570,6 +570,7 @@ function getResourceLocationResolverFunc(moduleSpec) {
 
     return undefined;
 }
+exports.getResourceLocationResolverFunc = getResourceLocationResolverFunc;
 
 function getScriptId(scriptSrc, config) {
     if (typeof config === 'string') {
