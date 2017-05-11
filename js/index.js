@@ -199,7 +199,13 @@ exports.getResourceLocationResolver = function (moduleSpec) {
     if (typeof moduleSpec === 'string') {
         moduleSpec = new ModuleSpec(moduleSpec);
     }
-    return internal.getResourceLocationResolverFunc(moduleSpec);
+    var resolver = internal.getResourceLocationResolverFunc(moduleSpec);
+    if (resolver) {
+        return function(resourcePath) {
+            return resolver(moduleSpec, resourcePath);
+        }
+    }
+    return undefined;
 };
 
 /**
