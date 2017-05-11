@@ -544,7 +544,7 @@ describe("index.js", function () {
         });
     });
     
-    it("- test addCSSToPage", function (done) {
+    it("- test addCSSToPage - on Jenkins host", function (done) {
         testUtil.onJenkinsPage(function() {
             var jenkins = require("../js/index");
             var document = window.document;
@@ -558,6 +558,42 @@ describe("index.js", function () {
             expect(cssEl).toBeDefined();
             expect(cssEl.getAttribute('href')).toBe('/jenkins/css/mathUtils.css');
             
+            done();
+        });
+    });
+
+    it("- test addCSSToPage - qualified URL - http", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var document = window.document;
+            var cssId = 'jenkins-js-module:global:css:http://acme.com/css/mathUtils.css';
+
+            var cssEl = document.getElementById(cssId);
+            expect(cssEl).toBe(null);
+
+            jenkins.addCSSToPage('http://acme.com/css/mathUtils.css');
+            cssEl = document.getElementById(cssId);
+            expect(cssEl).toBeDefined();
+            expect(cssEl.getAttribute('href')).toBe('http://acme.com/css/mathUtils.css');
+
+            done();
+        });
+    });
+
+    it("- test addCSSToPage - qualified URL - https", function (done) {
+        testUtil.onJenkinsPage(function() {
+            var jenkins = require("../js/index");
+            var document = window.document;
+            var cssId = 'jenkins-js-module:global:css:https://acme.com/css/mathUtils.css';
+
+            var cssEl = document.getElementById(cssId);
+            expect(cssEl).toBe(null);
+
+            jenkins.addCSSToPage('https://acme.com/css/mathUtils.css');
+            cssEl = document.getElementById(cssId);
+            expect(cssEl).toBeDefined();
+            expect(cssEl.getAttribute('href')).toBe('https://acme.com/css/mathUtils.css');
+
             done();
         });
     });

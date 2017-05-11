@@ -268,6 +268,9 @@ exports.addCSSToPage = function(cssPath, onError) {
     try {
         if (cssPath.indexOf(internal.getAdjunctURL()) === 0) {
             internal.addCSSToPage(undefined, cssPath);
+        } else if (cssPath.indexOf('http://') === 0 || cssPath.indexOf('https://') === 0) {
+            // the css path is already fully qualified
+            internal.addCSSToPage(undefined, cssPath);
         } else {
             internal.addCSSToPage(undefined, internal.getRootURL() + '/' + cssPath);
         }
