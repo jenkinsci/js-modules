@@ -54,24 +54,24 @@ exports.whoami = function(moduleQName) {
  */
 exports.importModule = function() {
     if (arguments.length === 1) {
-        return internal.importModule(arguments[0], onRegisterTimeout);        
+        return internal.importModule(arguments[0], onRegisterTimeout);
     }
-    
-    var moduleQNames = [];    
+
+    var moduleQNames = [];
     for (var i = 0; i < arguments.length; i++) {
         var argument = arguments[i];
         if (typeof argument === 'string') {
             moduleQNames.push(argument);
         }
     }
-    
+
     if (moduleQNames.length == 0) {
         throw new Error("No module names specified.");
     }
-    
+
     return promise.make(function (resolve, reject) {
         var fulfillments = [];
-        
+
         function onFulfillment() {
             if (fulfillments.length === moduleQNames.length) {
                 var modules = [];
@@ -87,10 +87,10 @@ exports.importModule = function() {
                 // means we can now fulfill the top level import promise.
                 resolve(modules);
             }
-        }        
-        
+        }
+
         // doRequire for each module
-        for (var i = 0; i < moduleQNames.length; i++) {           
+        for (var i = 0; i < moduleQNames.length; i++) {
             function doRequire(moduleQName) {
                 var promise = internal.importModule(moduleQName, onRegisterTimeout);
                 var fulfillment = {
@@ -109,7 +109,7 @@ exports.importModule = function() {
             }
             doRequire(moduleQNames[i]);
         }
-    }).applyArgsOnFulfill();    
+    }).applyArgsOnFulfill();
 };
 
 /**
@@ -126,7 +126,7 @@ exports.importModule = function() {
  */
 exports.requireModule = function(moduleQName) {
     var parsedModuleName = new ModuleSpec(moduleQName);
-    var module = internal.getModule(parsedModuleName);    
+    var module = internal.getModule(parsedModuleName);
     if (!module) {
         throw new Error("Unable to perform synchronous 'require' for module '" + moduleQName + "'. This module is not pre-loaded. " +
             "The module needs to have been asynchronously pre-loaded via an outer call to 'import'.");
@@ -136,10 +136,10 @@ exports.requireModule = function(moduleQName) {
 
 /**
  * Export a module.
- * 
+ *
  * @param namespace The namespace in which the module resides, or "undefined" if the modules is in
  * the "global" module namespace e.g. a Jenkins core bundle.
- * @param moduleName The name of the module. 
+ * @param moduleName The name of the module.
  * @param module The CommonJS style module, or "undefined" if we just want to notify other modules waiting on
  * the loading of this module.
  * @param onError On error callback;
@@ -182,15 +182,42 @@ exports.exportModule = function(namespace, moduleName, module, onError) {
 };
 
 /**
+ * Add a resource resolver.
+ * @param {ResourceLocationResolver} resourceLocationResolver The resource resolver.
+ */
+exports.addResourceLocationResolver = function(resourceLocationResolver) {
+    internal.addResourceLocationResolver(resourceLocationResolver);
+};
+
+/**
+ * Get the ResourceLocationResolver function for the supplied ModuleSpec.
+ * @param {ModuleSpec} moduleSpec The ModuleSpec.
+ * @returns {function} The ResourceLocationResolver function for the supplied
+ * ModuleSpec, or null if none specified.
+ */
+exports.getResourceLocationResolver = function (moduleSpec) {
+    if (typeof moduleSpec === 'string') {
+        moduleSpec = new ModuleSpec(moduleSpec);
+    }
+    var resolver = internal.getResourceLocationResolverFunc(moduleSpec);
+    if (resolver) {
+        return function(resourcePath) {
+            return resolver(moduleSpec, resourcePath);
+        }
+    }
+    return undefined;
+};
+
+/**
  * Add a module's CSS to the browser page.
- * 
+ *
  * <p>
  * The assumption is that the CSS can be accessed at e.g.
  * {@code <rootURL>/plugin/<namespace>/jsmodules/<moduleName>/style.css} i.e.
  * the pluginId acts as the namespace.
- * 
+ *
  * @param namespace The namespace in which the module resides.
- * @param moduleName The name of the module. 
+ * @param moduleName The name of the module.
  * @param onError On error callback;
  */
 exports.addModuleCSSToPage = function(namespace, moduleName, onError) {
@@ -206,9 +233,9 @@ exports.addModuleCSSToPage = function(namespace, moduleName, onError) {
 
 /**
  * Add a plugin CSS file to the browser page.
- * 
+ *
  * @param pluginName The Jenkins plugin in which the module resides.
- * @param cssPath The CSS path. 
+ * @param cssPath The CSS path.
  * @param onError On error callback;
  */
 exports.addPluginCSSToPage = function(pluginName, cssPath, onError) {
@@ -233,13 +260,16 @@ exports.toCSSId = function (cssPath, namespace) {
 
 /**
  * Add CSS file to the browser page.
- * 
- * @param cssPath The CSS path. 
+ *
+ * @param cssPath The CSS path.
  * @param onError On error callback;
  */
 exports.addCSSToPage = function(cssPath, onError) {
     try {
         if (cssPath.indexOf(internal.getAdjunctURL()) === 0) {
+            internal.addCSSToPage(undefined, cssPath);
+        } else if (cssPath.indexOf('http://') === 0 || cssPath.indexOf('https://') === 0) {
+            // the css path is already fully qualified
             internal.addCSSToPage(undefined, cssPath);
         } else {
             internal.addCSSToPage(undefined, internal.getRootURL() + '/' + cssPath);
@@ -263,7 +293,7 @@ exports.addCSSToPage = function(cssPath, onError) {
  *     <li><strong>error</strong>: An optional onload error function for the script element. This is called if the .js file exists but there's an error evaluating the script. It is NOT called if the .js file doesn't exist (ala 404).</li>
  *     <li><strong>removeElementOnLoad</strong>: Remove the script element after loading the script. Default is 'false'.</li>
  * </ul>
- * 
+ *
  * @param scriptSrc The script src.
  * @param options Optional script load options object. See above.
  */
@@ -282,7 +312,7 @@ exports.setRegisterTimeout = function(timeout) {
 
 /**
  * Set the Jenkins root/base URL.
- * 
+ *
  * @param rootUrl The root/base URL.
  */
 exports.setRootURL = function(rootUrl) {
