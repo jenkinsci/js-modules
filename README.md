@@ -1,4 +1,8 @@
-> __[JIRA](https://issues.jenkins-ci.org/browse/JENKINS/component/21133)__
+# ❗ This repository is unmaintained and end of life!
+<h2>
+    Jenkins supports tools like NPM or Yarn out of the box to add JavaScript to plugins. <br>
+    If you are a maintainer of a plugin depending on this library, we recommend moving away from this library to more modern and maintained packages.
+</h2>
 
 This is a JavaScript "module bundle" loader for Jenkins ([NPM] package) i.e. a loader for loading a JavaScript file that contains one or more
 [CommonJS]/[node.js] style modules in a single HTTP request (i.e. a "bundle").
